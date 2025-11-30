@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Cpu, Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 export const Navigation = () => {
   const location = useLocation();
@@ -49,6 +50,7 @@ export const Navigation = () => {
           </div>
 
           <div className="hidden md:flex items-center space-x-3">
+            <ThemeSwitcher />
             {user ? (
               <>
                 <Link to="/account">
@@ -99,6 +101,9 @@ export const Navigation = () => {
               </Link>
             ))}
             <div className="flex flex-col space-y-2 mt-4 px-4">
+              <div className="mb-2">
+                <ThemeSwitcher />
+              </div>
               {user ? (
                 <>
                   <Link to="/account" onClick={() => setMobileMenuOpen(false)}>

@@ -3,16 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Gamepad2, Zap, Save } from "lucide-react";
+import { User, Gamepad2, Zap, Save, Palette } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTheme, themes } from "@/hooks/use-theme";
 
 export default function Account() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -227,6 +229,30 @@ export default function Account() {
                 <Save className="h-4 w-4" />
                 {saving ? "Saving..." : "Save Changes"}
               </Button>
+            </div>
+          </Card>
+
+          {/* Theme Settings */}
+          <Card className="p-8 glass-panel hover-glow transition-all">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Palette className="h-6 w-6 text-primary-glow" />
+              </div>
+              <h2 className="text-2xl font-semibold">Appearance</h2>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Current Theme</Label>
+                <div className="p-4 rounded-xl glass-panel">
+                  <p className="font-semibold text-lg text-primary-glow">
+                    {themes[theme].name}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    You can change your theme from the navigation bar
+                  </p>
+                </div>
+              </div>
             </div>
           </Card>
         </div>
