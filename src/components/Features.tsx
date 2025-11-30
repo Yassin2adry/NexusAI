@@ -1,73 +1,63 @@
-import { Bot, Code2, Palette, Boxes, Download, Zap } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Bot, FileCode, Palette, Box, Zap, CheckCircle } from "lucide-react";
 
 const features = [
   {
     icon: Bot,
     title: "Multi-Agent AI System",
-    description: "Six specialized AI agents work together: Game Designer, World Builder, Script Engineer, UI Designer, Asset Manager, and Validator.",
-    color: "primary",
+    description: "Six specialized AI agents collaborate: Game Designer, World Builder, Script Engineer, UI Designer, Asset Manager, and Validator.",
   },
   {
-    icon: Code2,
-    title: "Full Luau Scripts",
-    description: "Generate complete, optimized scripts with modules, server/client logic, and proper error handling.",
-    color: "secondary",
+    icon: FileCode,
+    title: "Complete Scripts",
+    description: "Generate optimized Luau code with proper structure, modules, and server/client logic.",
   },
   {
     icon: Palette,
-    title: "UI & Asset Generation",
-    description: "Create responsive UIs, icons, layouts, and organize your Roblox explorer properly.",
-    color: "accent",
+    title: "UI Components",
+    description: "Create responsive interfaces with HUDs, menus, and interactive elements.",
   },
   {
-    icon: Boxes,
-    title: "Any Game Type",
-    description: "Build battle royales, simulators, tycoons, obbies, horror games, RPGs, and more.",
-    color: "primary",
-  },
-  {
-    icon: Download,
-    title: "One-Click Export",
-    description: "Download complete RBXL files with scripts, UI, and assets ready for Roblox Studio.",
-    color: "secondary",
+    icon: Box,
+    title: "Asset Organization",
+    description: "Properly structured Roblox explorer with organized folders and naming conventions.",
   },
   {
     icon: Zap,
-    title: "Live Refinement",
-    description: "Iterate on your game with AI. Add features, fix bugs, or modify systems in real-time.",
-    color: "accent",
+    title: "Real-Time Generation",
+    description: "Watch AI agents work step-by-step through the live terminal interface.",
+  },
+  {
+    icon: CheckCircle,
+    title: "Quality Validation",
+    description: "Automated testing and error checking before export to ensure code quality.",
   },
 ];
 
 export const Features = () => {
   return (
-    <section className="py-24 relative overflow-hidden">
-      <div className="absolute inset-0 bg-circuit opacity-30" />
-      
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16 space-y-4">
-          <h2 className="text-4xl md:text-5xl font-bold">
-            Powered by <span className="text-gradient-cyber">Advanced AI</span>
+    <section className="py-20 px-4 bg-card/30">
+      <div className="container mx-auto max-w-6xl">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Powerful AI-Driven Features
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Our multi-agent system handles every aspect of game development
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Advanced technology that handles every aspect of game development
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, i) => (
-            <Card
+            <div
               key={i}
-              className="glass border-border/50 p-6 hover:border-primary/50 transition-all group animate-fade-in"
-              style={{ animationDelay: `${i * 0.1}s` }}
+              className="p-6 rounded-lg border border-border bg-background hover:border-primary/50 transition-colors"
             >
-              <div className={`inline-flex p-3 rounded-lg bg-${feature.color}/10 border border-${feature.color}/20 mb-4 group-hover:scale-110 transition-transform`}>
-                <feature.icon className={`h-6 w-6 text-${feature.color}`} />
-              </div>
-              <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-              <p className="text-muted-foreground">{feature.description}</p>
-            </Card>
+              <feature.icon className="h-10 w-10 text-primary mb-4" />
+              <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {feature.description}
+              </p>
+            </div>
           ))}
         </div>
       </div>
