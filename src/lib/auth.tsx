@@ -26,14 +26,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      // Handle owner privileges
+      if (session?.user?.email === 'yassin.kadry@icloud.com') {
+        handleOwnerPrivileges(session.user.id);
+      }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      // Handle owner privileges
+      if (session?.user?.email === 'yassin.kadry@icloud.com') {
+        handleOwnerPrivileges(session.user.id);
+      }
     });
   }, []);
+
+  const handleOwnerPrivileges = async (userId: string) => {
+    try {
+      // Grant unlimited credits to owner
+      const { error } = await supabase
+        .from('credits')
+        .update({ amount: 999999 })
+        .eq('user_id', userId);
+      
+      if (error) console.error('Error updating owner credits:', error);
+    } catch (error) {
+      console.error('Error handling owner privileges:', error);
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     try {
