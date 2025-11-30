@@ -32,17 +32,20 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get user by email
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(email);
+    // Get user by email using listUsers
+    const { data: usersData, error: userError } = await supabase.auth.admin.listUsers();
     
-    if (userError || !userData.user) {
+    if (userError) throw userError;
+    
+    const user = usersData.users.find(u => u.email === email);
+    
+    if (!user) {
       return new Response(
         JSON.stringify({ error: "User not found" }),
         { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    const user = userData.user;
     const storedCode = user.user_metadata?.reset_code;
     const expiresAt = user.user_metadata?.reset_code_expires_at;
 

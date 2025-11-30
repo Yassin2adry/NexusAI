@@ -8,3 +8,27 @@ verify_jwt = true
 
 [functions.generate-chat-title]
 verify_jwt = true
+
+[functions.send-contact-email]
+verify_jwt = false
+
+[functions.send-reset-code]
+verify_jwt = false
+
+[functions.verify-reset-code]
+verify_jwt = false
+
+[functions.plugin-auth]
+verify_jwt = false
+
+[functions.plugin-projects]
+verify_jwt = false
+
+[functions.plugin-credits]
+verify_jwt = false
+
+[functions.plugin-export]
+verify_jwt = false
+
+[functions.plugin-realtime]
+verify_jwt = false

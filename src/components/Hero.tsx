@@ -12,7 +12,7 @@ export const Hero = () => {
       <div className="container mx-auto max-w-6xl relative z-10">
         <div className="text-center space-y-8 animate-fade-in-up">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel mb-4">
-            <Sparkles className="h-4 w-4 text-primary-glow" />
+            <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-sm text-muted-foreground">AI-Powered Game Development</span>
           </div>
           

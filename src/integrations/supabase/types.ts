@@ -127,6 +127,33 @@ export type Database = {
         }
         Relationships: []
       }
+      plugin_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          last_used_at: string | null
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          last_used_at?: string | null
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_used_at?: string | null
+          token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -169,15 +196,65 @@ export type Database = {
         }
         Relationships: []
       }
+      project_exports: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          download_url: string | null
+          error_message: string | null
+          format: string
+          id: string
+          project_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          download_url?: string | null
+          error_message?: string | null
+          format: string
+          id?: string
+          project_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          download_url?: string | null
+          error_message?: string | null
+          format?: string
+          id?: string
+          project_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_exports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           assets: string | null
+          client_scripts: Json | null
           created_at: string
           design_document: string | null
+          export_status: string | null
+          export_url: string | null
           id: string
+          modules: Json | null
           name: string
           prompt: string
+          replicated_scripts: Json | null
           scripts: string | null
+          server_scripts: Json | null
           status: string
           type: string | null
           ui_components: string | null
@@ -186,12 +263,18 @@ export type Database = {
         }
         Insert: {
           assets?: string | null
+          client_scripts?: Json | null
           created_at?: string
           design_document?: string | null
+          export_status?: string | null
+          export_url?: string | null
           id?: string
+          modules?: Json | null
           name: string
           prompt: string
+          replicated_scripts?: Json | null
           scripts?: string | null
+          server_scripts?: Json | null
           status?: string
           type?: string | null
           ui_components?: string | null
@@ -200,12 +283,18 @@ export type Database = {
         }
         Update: {
           assets?: string | null
+          client_scripts?: Json | null
           created_at?: string
           design_document?: string | null
+          export_status?: string | null
+          export_url?: string | null
           id?: string
+          modules?: Json | null
           name?: string
           prompt?: string
+          replicated_scripts?: Json | null
           scripts?: string | null
+          server_scripts?: Json | null
           status?: string
           type?: string | null
           ui_components?: string | null
@@ -324,6 +413,13 @@ export type Database = {
       has_sufficient_credits: {
         Args: { p_amount: number; p_user_id: string }
         Returns: boolean
+      }
+      validate_plugin_token: {
+        Args: { p_token: string }
+        Returns: {
+          is_valid: boolean
+          user_id: string
+        }[]
       }
     }
     Enums: {
