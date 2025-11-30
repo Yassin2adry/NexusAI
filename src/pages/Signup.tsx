@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Cpu, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
@@ -16,6 +16,8 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const { signUp, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get("ref") || undefined;
 
   useEffect(() => {
     if (user) {
@@ -46,7 +48,7 @@ export default function Signup() {
     setLoading(true);
     
     try {
-      await signUp(email, password, fullName);
+      await signUp(email, password, fullName, referralCode);
     } catch (error) {
       console.error("Signup error:", error);
     } finally {
@@ -76,7 +78,14 @@ export default function Signup() {
                 </span>
               </div>
               <h1 className="text-3xl font-bold mb-2">Create Account</h1>
-              <p className="text-sm text-muted-foreground">Start building games with AI</p>
+              <p className="text-sm text-muted-foreground">
+                Start building games with AI
+                {referralCode && (
+                  <span className="block mt-1 text-primary-glow">
+                    ✨ Using referral code: {referralCode}
+                  </span>
+                )}
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
