@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MarkdownMessage } from "@/components/MarkdownMessage";
-import { Plus, Send, Trash2, Edit2, MessageSquare, Loader2, Menu, X } from "lucide-react";
+import { TaskTerminal } from "@/components/TaskTerminal";
+import { Plus, Send, Trash2, Edit2, MessageSquare, Loader2, Menu, X, Zap } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
@@ -280,6 +281,7 @@ export default function Chat() {
           body: JSON.stringify({
             chatSessionId: id,
             message: userMessage,
+            taskType: "chat_message",
           }),
         }
       );
@@ -290,7 +292,8 @@ export default function Chat() {
         if (response.status === 429) {
           toast.error("Rate limit exceeded. Please try again later.");
         } else if (response.status === 402) {
-          toast.error("AI credits depleted. Please add more credits to continue.");
+          const errorData = error as { required?: number };
+          toast.error(`Insufficient credits. ${errorData.required || 1} credits required.`);
         } else {
           toast.error("AI couldn't process this request. Please try again.");
         }
@@ -299,6 +302,13 @@ export default function Chat() {
         setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
         setSending(false);
         return;
+      }
+
+      const result = await response.json();
+
+      // Show success notification with credits used
+      if (result.creditsUsed) {
+        toast.success(`Task completed! ${result.creditsUsed} credits used.`);
       }
 
       // Reload messages to get the actual saved messages
@@ -520,35 +530,49 @@ export default function Chat() {
               </div>
 
               {/* Input Area */}
-              <div className="p-4 border-t border-border/50 glass-panel">
-                <div className="max-w-4xl mx-auto flex gap-2">
-                  <Textarea
-                    ref={inputRef}
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                      }
-                    }}
-                    placeholder="Type your message... (Shift+Enter for new line)"
-                    className="resize-none bg-background/50 border-border/50 focus:border-primary-glow transition-all min-h-[60px]"
-                    rows={3}
-                    disabled={sending}
-                  />
-                  <Button
-                    onClick={sendMessage}
-                    disabled={!inputMessage.trim() || sending}
-                    size="icon"
-                    className="flex-shrink-0 h-[60px] w-[60px] hover-glow"
-                  >
-                    {sending ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <Send className="h-5 w-5" />
-                    )}
-                  </Button>
+              <div className="p-4 border-t border-border/50 glass-panel space-y-3">
+                {/* Terminal */}
+                {sending && <TaskTerminal isProcessing={sending} creditCost={1} />}
+                
+                <div className="max-w-4xl mx-auto">
+                  <div className="flex gap-2">
+                    <Textarea
+                      ref={inputRef}
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage();
+                        }
+                      }}
+                      placeholder="Type your message... (Shift+Enter for new line)"
+                      className="resize-none bg-background/50 border-border/50 focus:border-primary-glow transition-all min-h-[60px]"
+                      rows={3}
+                      disabled={sending}
+                    />
+                    <Button
+                      onClick={sendMessage}
+                      disabled={!inputMessage.trim() || sending}
+                      size="icon"
+                      className="flex-shrink-0 h-[60px] w-[60px] hover-glow"
+                    >
+                      {sending ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <Send className="h-5 w-5" />
+                      )}
+                    </Button>
+                  </div>
+                  
+                  {/* Credit cost indicator */}
+                  <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                    <span>Press Enter to send, Shift+Enter for new line</span>
+                    <div className="flex items-center gap-1">
+                      <Zap className="h-3 w-3 text-primary-glow" />
+                      <span>1 credit per message</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </>

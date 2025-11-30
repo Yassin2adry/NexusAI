@@ -4,6 +4,7 @@ import { Cpu, Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { CreditsBadge } from "@/components/CreditsBadge";
 
 export const Navigation = () => {
   const location = useLocation();
@@ -50,6 +51,7 @@ export const Navigation = () => {
           </div>
 
           <div className="hidden md:flex items-center space-x-3">
+            {user && <CreditsBadge />}
             <ThemeSwitcher />
             {user ? (
               <>

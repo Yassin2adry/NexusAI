@@ -10,15 +10,17 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme, themes } from "@/hooks/use-theme";
+import { TaskHistory } from "@/components/TaskHistory";
+import { useCredits } from "@/hooks/use-credits";
 
 export default function Account() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { credits } = useCredits();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [credits, setCredits] = useState(0);
   const [profile, setProfile] = useState<{
     full_name: string | null;
     roblox_username: string | null;
@@ -35,7 +37,6 @@ export default function Account() {
   useEffect(() => {
     if (user) {
       loadProfile();
-      loadCredits();
     }
   }, [user]);
 
@@ -53,21 +54,6 @@ export default function Account() {
       console.error("Error loading profile:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadCredits = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("credits")
-        .select("amount")
-        .eq("user_id", user?.id)
-        .single();
-
-      if (error) throw error;
-      setCredits(data?.amount || 0);
-    } catch (error: any) {
-      console.error("Error loading credits:", error);
     }
   };
 
@@ -255,6 +241,9 @@ export default function Account() {
               </div>
             </div>
           </Card>
+
+          {/* Task History */}
+          <TaskHistory limit={10} />
         </div>
       </div>
     </div>
