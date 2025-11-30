@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@4.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,20 +29,33 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Send email to owner
-    const emailResponse = await resend.emails.send({
-      from: "NexusAI Contact <onboarding@resend.dev>",
-      to: ["yassin.kadry@icloud.com", "yassinkadry085@gmail.com"],
-      replyTo: email,
-      subject: `New Contact Form Submission from ${name}`,
-      html: `
-        <h2>New Contact Form Submission</h2>
-        <p><strong>From:</strong> ${name} (${email})</p>
-        <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, '<br>')}</p>
-      `,
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "NexusAI Contact <onboarding@resend.dev>",
+        to: ["yassin.kadry@icloud.com", "yassinkadry085@gmail.com"],
+        reply_to: email,
+        subject: `New Contact Form Submission from ${name}`,
+        html: `
+          <h2>New Contact Form Submission</h2>
+          <p><strong>From:</strong> ${name} (${email})</p>
+          <p><strong>Message:</strong></p>
+          <p>${message.replace(/\n/g, '<br>')}</p>
+        `,
+      }),
     });
 
-    console.log("Contact email sent successfully:", emailResponse);
+    if (!emailResponse.ok) {
+      const error = await emailResponse.text();
+      throw new Error(`Resend API error: ${error}`);
+    }
+
+    const emailResult = await emailResponse.json();
+    console.log("Contact email sent successfully:", emailResult);
 
     return new Response(
       JSON.stringify({ success: true, message: "Email sent successfully" }),

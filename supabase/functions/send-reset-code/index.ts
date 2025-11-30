@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { Resend } from "npm:resend@4.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -35,10 +34,14 @@ const handler = async (req: Request): Promise<Response> => {
     // Generate 6-digit code
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
     
-    // Store code in user metadata with expiry (10 minutes)
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(email);
+    // Get user by email using listUsers
+    const { data: usersData, error: userError } = await supabase.auth.admin.listUsers();
     
-    if (userError || !userData.user) {
+    if (userError) throw userError;
+    
+    const user = usersData.users.find(u => u.email === email);
+    
+    if (!user) {
       return new Response(
         JSON.stringify({ error: "User not found" }),
         { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -47,28 +50,40 @@ const handler = async (req: Request): Promise<Response> => {
 
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
-    await supabase.auth.admin.updateUserById(userData.user.id, {
+    await supabase.auth.admin.updateUserById(user.id, {
       user_metadata: {
-        ...userData.user.user_metadata,
+        ...user.user_metadata,
         reset_code: resetCode,
         reset_code_expires_at: expiresAt,
       },
     });
 
     // Send email with code
-    await resend.emails.send({
-      from: "NexusAI <onboarding@resend.dev>",
-      to: [email],
-      subject: "Password Reset Code - NexusAI",
-      html: `
-        <h2>Password Reset Request</h2>
-        <p>You requested to reset your password. Use the code below to reset it:</p>
-        <h1 style="font-size: 32px; font-weight: bold; color: #2B0A41; letter-spacing: 4px;">${resetCode}</h1>
-        <p>This code will expire in 10 minutes.</p>
-        <p>If you didn't request this, please ignore this email.</p>
-        <p><strong>NexusAI Team</strong></p>
-      `,
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "NexusAI <onboarding@resend.dev>",
+        to: [email],
+        subject: "Password Reset Code - NexusAI",
+        html: `
+          <h2>Password Reset Request</h2>
+          <p>You requested to reset your password. Use the code below to reset it:</p>
+          <h1 style="font-size: 32px; font-weight: bold; color: #2B0A41; letter-spacing: 4px;">${resetCode}</h1>
+          <p>This code will expire in 10 minutes.</p>
+          <p>If you didn't request this, please ignore this email.</p>
+          <p><strong>NexusAI Team</strong></p>
+        `,
+      }),
     });
+
+    if (!emailResponse.ok) {
+      const error = await emailResponse.text();
+      throw new Error(`Resend API error: ${error}`);
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: "Reset code sent to your email" }),
