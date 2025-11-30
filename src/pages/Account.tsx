@@ -13,6 +13,7 @@ import { useTheme, themes } from "@/hooks/use-theme";
 import { TaskHistory } from "@/components/TaskHistory";
 import { useCredits } from "@/hooks/use-credits";
 import { AchievementsPanel } from "@/components/AchievementsPanel";
+import { CreditsHistory } from "@/components/CreditsHistory";
 
 export default function Account() {
   const { user, loading: authLoading } = useAuth();
@@ -248,6 +249,9 @@ export default function Account() {
 
           {/* Achievements */}
           <AchievementsPanel />
+
+          {/* Credits History */}
+          <CreditsHistory />
         </div>
       </div>
     </div>
