@@ -27,9 +27,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // Handle owner privileges
-      if (session?.user?.email === 'yassin.kadry@icloud.com') {
-        handleOwnerPrivileges(session.user.id);
+      // Check owner privileges by email or Roblox username
+      if (session?.user) {
+        checkAndGrantOwnerPrivileges(session.user.id, session.user.email);
       }
     });
 
@@ -38,24 +38,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       setLoading(false);
 
-      // Handle owner privileges
-      if (session?.user?.email === 'yassin.kadry@icloud.com') {
-        handleOwnerPrivileges(session.user.id);
+      // Check owner privileges by email or Roblox username
+      if (session?.user) {
+        checkAndGrantOwnerPrivileges(session.user.id, session.user.email);
       }
     });
   }, []);
 
-  const handleOwnerPrivileges = async (userId: string) => {
+  const checkAndGrantOwnerPrivileges = async (userId: string, email?: string) => {
     try {
-      // Grant unlimited credits to owner
-      const { error } = await supabase
-        .from('credits')
-        .update({ amount: 999999 })
-        .eq('user_id', userId);
+      // Check if owner by email
+      const isOwnerEmail = email === 'yassin.kadry@icloud.com';
       
-      if (error) console.error('Error updating owner credits:', error);
+      // Check if owner by Roblox username
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('roblox_username')
+        .eq('id', userId)
+        .single();
+      
+      const isOwnerRoblox = profile?.roblox_username?.toLowerCase() === 'jameslovemm2';
+      
+      // Grant unlimited credits if owner
+      if (isOwnerEmail || isOwnerRoblox) {
+        setTimeout(async () => {
+          const { error } = await supabase
+            .from('credits')
+            .update({ amount: 999999 })
+            .eq('user_id', userId);
+          
+          if (error) console.error('Error updating owner credits:', error);
+        }, 0);
+      }
     } catch (error) {
-      console.error('Error handling owner privileges:', error);
+      console.error('Error checking owner privileges:', error);
     }
   };
 
