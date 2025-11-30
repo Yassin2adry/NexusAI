@@ -99,6 +99,8 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          roblox_avatar_url: string | null
+          roblox_user_id: string | null
           roblox_username: string | null
           updated_at: string
         }
@@ -106,6 +108,8 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          roblox_avatar_url?: string | null
+          roblox_user_id?: string | null
           roblox_username?: string | null
           updated_at?: string
         }
@@ -113,6 +117,8 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          roblox_avatar_url?: string | null
+          roblox_user_id?: string | null
           roblox_username?: string | null
           updated_at?: string
         }

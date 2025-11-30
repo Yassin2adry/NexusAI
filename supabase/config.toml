@@ -2,3 +2,6 @@ project_id = "crxqknijoehddwexrvhj"
 
 [functions.ai-chat]
 verify_jwt = true
+
+[functions.verify-roblox]
+verify_jwt = true

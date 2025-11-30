@@ -16,9 +16,13 @@ export default function Account() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [fullName, setFullName] = useState("");
-  const [robloxUsername, setRobloxUsername] = useState("");
   const [credits, setCredits] = useState(0);
+  const [profile, setProfile] = useState<{
+    full_name: string | null;
+    roblox_username: string | null;
+    roblox_avatar_url: string | null;
+    roblox_user_id: string | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -37,14 +41,12 @@ export default function Account() {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("full_name, roblox_username, roblox_avatar_url, roblox_user_id")
         .eq("id", user?.id)
         .single();
 
       if (error) throw error;
-
-      setFullName(data?.full_name || "");
-      setRobloxUsername(data?.roblox_username || "");
+      setProfile(data);
     } catch (error: any) {
       console.error("Error loading profile:", error);
     } finally {
@@ -68,30 +70,42 @@ export default function Account() {
   };
 
   const saveProfile = async () => {
-    if (!fullName.trim()) {
+    const fullName = profile?.full_name?.trim() || "";
+    const robloxUsername = profile?.roblox_username?.trim() || "";
+
+    if (!fullName) {
       toast.error("Name cannot be empty");
       return;
     }
 
-    if (!robloxUsername.trim()) {
+    if (!robloxUsername) {
       toast.error("Roblox username cannot be empty");
       return;
     }
 
     setSaving(true);
-
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          full_name: fullName.trim(),
-          roblox_username: robloxUsername.trim(),
-        })
-        .eq("id", user?.id);
+      const { data, error } = await supabase.functions.invoke("verify-roblox", {
+        body: { username: robloxUsername },
+      });
 
       if (error) throw error;
 
+      if (data.error) {
+        toast.error(data.error);
+        setSaving(false);
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ full_name: fullName })
+        .eq("id", user?.id);
+
+      if (updateError) throw updateError;
+
       toast.success("Profile updated successfully!");
+      await loadProfile();
     } catch (error: any) {
       toast.error("Failed to update profile");
       console.error("Error updating profile:", error);
@@ -163,8 +177,8 @@ export default function Account() {
                 <Input
                   id="fullName"
                   type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  value={profile?.full_name || ""}
+                  onChange={(e) => setProfile(prev => prev ? {...prev, full_name: e.target.value} : null)}
                   className="bg-background border-border"
                 />
               </div>
@@ -176,15 +190,29 @@ export default function Account() {
                     Roblox Username
                   </div>
                 </Label>
-                <Input
-                  id="robloxUsername"
-                  type="text"
-                  value={robloxUsername}
-                  onChange={(e) => setRobloxUsername(e.target.value)}
-                  className="bg-background border-border"
-                  minLength={3}
-                  maxLength={20}
-                />
+                <div className="flex items-center gap-2">
+                  {profile?.roblox_avatar_url && (
+                    <img
+                      src={profile.roblox_avatar_url}
+                      alt="Roblox Avatar"
+                      className="w-10 h-10 rounded-full border-2 border-primary"
+                    />
+                  )}
+                  <Input
+                    id="robloxUsername"
+                    type="text"
+                    value={profile?.roblox_username || ""}
+                    onChange={(e) => setProfile(prev => prev ? {...prev, roblox_username: e.target.value} : null)}
+                    className="bg-background border-border flex-1"
+                    minLength={3}
+                    maxLength={20}
+                  />
+                </div>
+                {profile?.roblox_user_id && (
+                  <p className="text-xs text-muted-foreground">
+                    User ID: {profile.roblox_user_id} (Verified ✓)
+                  </p>
+                )}
               </div>
 
               <Button onClick={saveProfile} disabled={saving} className="gap-2">
