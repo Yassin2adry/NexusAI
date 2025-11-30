@@ -5,10 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import Workspace from "./pages/Workspace";
+import Chat from "./pages/Chat";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import RobloxLink from "./pages/RobloxLink";
+import Account from "./pages/Account";
 import Pricing from "./pages/Pricing";
 import Docs from "./pages/Docs";
 import NotFound from "./pages/NotFound";
@@ -24,11 +25,12 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/workspace" element={<Workspace />} />
-            <Route path="/workspace/:id" element={<Workspace />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/chat/:id" element={<Chat />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/roblox-link" element={<RobloxLink />} />
+            <Route path="/account" element={<Account />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/docs" element={<Docs />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

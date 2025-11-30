@@ -44,8 +44,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (error) throw error;
       
+      // Check if user has linked Roblox account
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("roblox_username")
+        .single();
+      
       toast.success("Signed in successfully!");
-      navigate("/dashboard");
+      
+      if (profile?.roblox_username) {
+        navigate("/chat");
+      } else {
+        navigate("/roblox-link");
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in");
       throw error;
@@ -61,14 +72,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           data: {
             full_name: fullName,
           },
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/roblox-link`,
         },
       });
       
       if (error) throw error;
       
-      toast.success("Account created! Signing you in...");
-      navigate("/dashboard");
+      toast.success("Account created! Please link your Roblox account.");
+      navigate("/roblox-link");
     } catch (error: any) {
       toast.error(error.message || "Failed to sign up");
       throw error;

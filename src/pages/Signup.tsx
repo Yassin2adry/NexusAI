@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Cpu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -18,9 +19,27 @@ export default function Signup() {
 
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      checkRobloxLink();
     }
   }, [user, navigate]);
+
+  const checkRobloxLink = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("roblox_username")
+        .eq("id", user?.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data?.roblox_username) {
+        navigate("/chat");
+      }
+    } catch (error: any) {
+      console.error("Error checking Roblox link:", error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

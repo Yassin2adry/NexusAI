@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Cpu, Menu, X, LogOut } from "lucide-react";
+import { Cpu, Menu, X, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 
@@ -11,7 +11,7 @@ export const Navigation = () => {
 
   const navLinks = [
     { name: "Home", path: "/" },
-    ...(user ? [{ name: "Dashboard", path: "/dashboard" }] : []),
+    ...(user ? [{ name: "Chat", path: "/chat" }] : []),
     { name: "Pricing", path: "/pricing" },
     { name: "Docs", path: "/docs" },
   ];
@@ -43,10 +43,18 @@ export const Navigation = () => {
 
           <div className="hidden md:flex items-center space-x-3">
             {user ? (
-              <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </Button>
+              <>
+                <Link to="/account">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <User className="h-4 w-4" />
+                    Account
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </Button>
+              </>
             ) : (
               <>
                 <Link to="/login">
@@ -81,9 +89,18 @@ export const Navigation = () => {
             ))}
             <div className="flex flex-col space-y-2 mt-4">
               {user ? (
-                <Button variant="ghost" className="w-full" onClick={signOut}>
-                  Sign Out
-                </Button>
+                <>
+                  <Link to="/account" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full gap-2">
+                      <User className="h-4 w-4" />
+                      Account
+                    </Button>
+                  </Link>
+                  <Button variant="ghost" className="w-full gap-2" onClick={signOut}>
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </Button>
+                </>
               ) : (
                 <>
                   <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
