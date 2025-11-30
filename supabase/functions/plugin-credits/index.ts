@@ -82,13 +82,24 @@ const handler = async (req: Request): Promise<Response> => {
     if (path.includes("/deduct") && req.method === "POST") {
       const { amount, taskType, taskData } = await req.json();
 
+      // Check if user is owner (unlimited credits)
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("roblox_username")
+        .eq("id", userId)
+        .single();
+
+      const { data: userAuth } = await supabase.auth.admin.getUserById(userId);
+      const isOwner = userAuth?.user?.email === 'yassin.kadry@icloud.com' || 
+                      profile?.roblox_username?.toLowerCase() === 'jameslovemm2';
+
       // Create task
       const { data: task, error: taskError } = await supabase
         .from("tasks")
         .insert({
           user_id: userId,
           type: taskType,
-          credits_cost: amount,
+          credits_cost: isOwner ? 0 : amount,
           status: "processing",
           input_data: taskData,
         })
@@ -97,7 +108,20 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (taskError) throw taskError;
 
-      // Deduct credits
+      // If owner, skip credit deduction
+      if (isOwner) {
+        await supabase
+          .from("tasks")
+          .update({ status: "completed", credits_deducted: true })
+          .eq("id", task.id);
+
+        return new Response(
+          JSON.stringify({ success: true, taskId: task.id, creditsUsed: 0, owner: true }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Deduct credits for non-owners
       const { data: success, error: deductError } = await supabase.rpc("deduct_credits", {
         p_user_id: userId,
         p_task_id: task.id,
