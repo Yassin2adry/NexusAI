@@ -337,6 +337,34 @@ export default function Chat() {
             {id ? (
               <>
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {messages.length === 0 && !sending && (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center max-w-2xl">
+                        <h3 className="text-lg font-semibold mb-2">Start Your Game Development Journey</h3>
+                        <p className="text-sm text-muted-foreground mb-6">
+                          I can help you with game design, Luau scripting, UI creation, and more!
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {[
+                            { title: "🎮 Design a Game", prompt: "Help me design a multiplayer obby game with unique mechanics" },
+                            { title: "💻 Write Scripts", prompt: "Create a Luau script for a working inventory system" },
+                            { title: "🎨 Create UI", prompt: "Design a modern main menu for my game" },
+                            { title: "🛠️ Get Tips", prompt: "What are the best practices for Roblox game optimization?" },
+                          ].map((suggestion, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setInputMessage(suggestion.prompt)}
+                              className="p-4 text-left rounded-lg border border-border hover:border-primary hover:bg-muted/50 transition-all"
+                            >
+                              <p className="font-medium text-sm mb-1">{suggestion.title}</p>
+                              <p className="text-xs text-muted-foreground">{suggestion.prompt}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   {messages.map((message) => (
                     <div
                       key={message.id}

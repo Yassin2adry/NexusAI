@@ -48,7 +48,6 @@ export default function RobloxLink() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!robloxUsername.trim()) {
       toast.error("Please enter your Roblox username");
       return;
@@ -60,20 +59,24 @@ export default function RobloxLink() {
     }
 
     setSaving(true);
-
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ roblox_username: robloxUsername.trim() })
-        .eq("id", user?.id);
+      const { data, error } = await supabase.functions.invoke("verify-roblox", {
+        body: { username: robloxUsername.trim() },
+      });
 
       if (error) throw error;
 
-      toast.success("Roblox account linked successfully!");
+      if (data.error) {
+        toast.error(data.error);
+        setSaving(false);
+        return;
+      }
+
+      toast.success(`Roblox account verified: ${data.robloxUser.username}!`);
       navigate("/chat");
     } catch (error: any) {
-      toast.error("Failed to link Roblox account");
       console.error("Error linking Roblox account:", error);
+      toast.error(error.message || "Failed to verify Roblox account");
     } finally {
       setSaving(false);
     }
