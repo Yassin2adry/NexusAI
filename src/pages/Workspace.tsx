@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Download, Play, RotateCcw, Sparkles } from "lucide-react";
+import { Download, Play, RotateCcw } from "lucide-react";
 import { useState } from "react";
 
 export default function Workspace() {
@@ -16,37 +16,31 @@ export default function Workspace() {
       
       <div className="container mx-auto px-4 pt-24 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Workspace */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Prompt Input */}
-            <Card className="glass border-primary/20 p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Sparkles className="h-6 w-6 text-primary" />
-                Describe Your Game
-              </h2>
+            <Card className="p-6 border-border">
+              <h2 className="text-xl font-semibold mb-4">Game Concept</h2>
               
               <Textarea
-                placeholder="Example: Create a battle royale game with 100 players, shrinking zone, weapon pickups, building mechanics, and a storm system..."
+                placeholder="Describe your Roblox game idea in detail. Example: Create a battle royale game with 100 players, shrinking zone, weapon pickups..."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                className="min-h-32 mb-4 bg-background/50 border-border/50 focus:border-primary"
+                className="min-h-32 mb-4 bg-background border-border"
               />
               
               <div className="flex gap-3">
-                <Button className="flex-1 bg-gradient-cyber glow-primary">
-                  <Play className="mr-2 h-5 w-5" />
+                <Button className="flex-1 gap-2">
+                  <Play className="h-4 w-4" />
                   Generate Game
                 </Button>
-                <Button variant="outline" className="border-primary/30">
-                  <RotateCcw className="h-5 w-5" />
+                <Button variant="outline" size="icon">
+                  <RotateCcw className="h-4 w-4" />
                 </Button>
               </div>
             </Card>
 
-            {/* Project Output Tabs */}
-            <Card className="glass border-border/50 p-6">
+            <Card className="p-6 border-border">
               <Tabs defaultValue="concept" className="w-full">
-                <TabsList className="grid grid-cols-5 w-full bg-muted/50">
+                <TabsList className="grid grid-cols-5 w-full">
                   <TabsTrigger value="concept">Concept</TabsTrigger>
                   <TabsTrigger value="scripts">Scripts</TabsTrigger>
                   <TabsTrigger value="ui">UI</TabsTrigger>
@@ -55,57 +49,54 @@ export default function Workspace() {
                 </TabsList>
                 
                 <TabsContent value="concept" className="mt-6">
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold">Game Design Document</h3>
-                    <div className="p-4 rounded-lg bg-muted/50 text-muted-foreground">
-                      <p>Your game concept and design will appear here after generation...</p>
+                  <div className="space-y-3">
+                    <h3 className="font-semibold">Design Document</h3>
+                    <div className="p-4 rounded bg-muted text-sm text-muted-foreground">
+                      Your game design document will appear here after generation...
                     </div>
                   </div>
                 </TabsContent>
                 
                 <TabsContent value="scripts" className="mt-6">
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold">Generated Scripts</h3>
-                    <div className="p-4 rounded-lg bg-muted/50 font-mono text-sm">
+                  <div className="space-y-3">
+                    <h3 className="font-semibold">Generated Scripts</h3>
+                    <div className="p-4 rounded bg-muted font-mono text-sm">
                       <p className="text-muted-foreground">-- Scripts will be generated here</p>
                     </div>
                   </div>
                 </TabsContent>
                 
                 <TabsContent value="ui" className="mt-6">
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold">UI Components</h3>
-                    <div className="p-4 rounded-lg bg-muted/50 text-muted-foreground">
-                      <p>UI layouts and components will appear here...</p>
+                  <div className="space-y-3">
+                    <h3 className="font-semibold">UI Components</h3>
+                    <div className="p-4 rounded bg-muted text-sm text-muted-foreground">
+                      UI layouts will be shown here...
                     </div>
                   </div>
                 </TabsContent>
                 
                 <TabsContent value="assets" className="mt-6">
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold">Asset Organization</h3>
-                    <div className="p-4 rounded-lg bg-muted/50 text-muted-foreground">
-                      <p>Roblox explorer structure will be shown here...</p>
+                  <div className="space-y-3">
+                    <h3 className="font-semibold">Asset Organization</h3>
+                    <div className="p-4 rounded bg-muted text-sm text-muted-foreground">
+                      Explorer structure will appear here...
                     </div>
                   </div>
                 </TabsContent>
                 
                 <TabsContent value="export" className="mt-6">
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold">Export Project</h3>
-                    <div className="p-4 rounded-lg bg-muted/50">
-                      <Button className="bg-gradient-cyber glow-primary w-full">
-                        <Download className="mr-2 h-5 w-5" />
-                        Download RBXL File
-                      </Button>
-                    </div>
+                  <div className="space-y-3">
+                    <h3 className="font-semibold">Export Project</h3>
+                    <Button className="w-full gap-2">
+                      <Download className="h-4 w-4" />
+                      Download RBXL File
+                    </Button>
                   </div>
                 </TabsContent>
               </Tabs>
             </Card>
           </div>
 
-          {/* AI Terminal Sidebar */}
           <div className="lg:col-span-1">
             <AITerminal />
           </div>
