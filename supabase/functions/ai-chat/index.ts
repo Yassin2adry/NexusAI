@@ -6,6 +6,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Credit costs for different task types
+const CREDIT_COSTS = {
+  chat_message: 1,
+  project_generation: 10,
+  script_generation: 5,
+  ui_generation: 3,
+  asset_generation: 2,
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -33,11 +42,50 @@ serve(async (req) => {
       });
     }
 
-    const { chatSessionId, message } = await req.json();
+    const { chatSessionId, message, taskType = "chat_message" } = await req.json();
 
     if (!chatSessionId || !message) {
       return new Response(JSON.stringify({ error: "Missing chatSessionId or message" }), {
         status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const creditCost = CREDIT_COSTS[taskType as keyof typeof CREDIT_COSTS] || CREDIT_COSTS.chat_message;
+
+    // Check if user has sufficient credits
+    const { data: creditsCheck } = await supabaseClient.rpc("has_sufficient_credits", {
+      p_user_id: user.id,
+      p_amount: creditCost,
+    });
+
+    if (!creditsCheck) {
+      return new Response(JSON.stringify({ 
+        error: "Insufficient credits",
+        required: creditCost 
+      }), {
+        status: 402,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Create task record
+    const { data: task, error: taskError } = await supabaseClient
+      .from("tasks")
+      .insert({
+        user_id: user.id,
+        type: taskType,
+        status: "processing",
+        credits_cost: creditCost,
+        input_data: { message, chatSessionId },
+      })
+      .select()
+      .single();
+
+    if (taskError) {
+      console.error("Error creating task:", taskError);
+      return new Response(JSON.stringify({ error: "Failed to create task" }), {
+        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -67,6 +115,11 @@ serve(async (req) => {
 
     if (userMsgError) {
       console.error("Error saving user message:", userMsgError);
+      await supabaseClient.from("tasks").update({
+        status: "failed",
+        error_message: "Failed to save user message",
+        completed_at: new Date().toISOString(),
+      }).eq("id", task.id);
       throw userMsgError;
     }
 
@@ -129,6 +182,12 @@ When users seem stuck or unsure, offer 2-3 concrete recommendations to get them 
     });
 
     if (!response.ok) {
+      await supabaseClient.from("tasks").update({
+        status: "failed",
+        error_message: `AI API error: ${response.status}`,
+        completed_at: new Date().toISOString(),
+      }).eq("id", task.id);
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
@@ -166,8 +225,30 @@ When users seem stuck or unsure, offer 2-3 concrete recommendations to get them 
 
     if (assistantMsgError) {
       console.error("Error saving assistant message:", assistantMsgError);
+      await supabaseClient.from("tasks").update({
+        status: "failed",
+        error_message: "Failed to save AI response",
+        completed_at: new Date().toISOString(),
+      }).eq("id", task.id);
       throw assistantMsgError;
     }
+
+    // Update task as successful and deduct credits
+    const { error: deductError } = await supabaseClient.rpc("deduct_credits", {
+      p_user_id: user.id,
+      p_task_id: task.id,
+      p_amount: creditCost,
+    });
+
+    if (deductError) {
+      console.error("Error deducting credits:", deductError);
+    }
+
+    await supabaseClient.from("tasks").update({
+      status: "completed",
+      output_data: { response: assistantMessage },
+      completed_at: new Date().toISOString(),
+    }).eq("id", task.id);
 
     // Update chat session timestamp
     await supabaseClient
@@ -175,11 +256,36 @@ When users seem stuck or unsure, offer 2-3 concrete recommendations to get them 
       .update({ updated_at: new Date().toISOString() })
       .eq("id", chatSessionId);
 
-    return new Response(JSON.stringify({ message: assistantMessage }), {
+    return new Response(JSON.stringify({ 
+      success: true,
+      taskId: task.id,
+      creditsUsed: creditCost,
+      message: assistantMessage,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("Error in ai-chat function:", error);
+    
+    // Try to mark task as failed if we have the task ID
+    try {
+      const { chatSessionId } = await req.json();
+      if (chatSessionId) {
+        const supabaseClient = createClient(
+          Deno.env.get("SUPABASE_URL") ?? "",
+          Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+          {
+            global: {
+              headers: { Authorization: req.headers.get("Authorization")! },
+            },
+          }
+        );
+        // This is a best-effort attempt, may fail if task wasn't created
+      }
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       {
