@@ -14,7 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      credits: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          assets: string | null
+          created_at: string
+          design_document: string | null
+          id: string
+          name: string
+          prompt: string
+          scripts: string | null
+          status: string
+          type: string | null
+          ui_components: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assets?: string | null
+          created_at?: string
+          design_document?: string | null
+          id?: string
+          name: string
+          prompt: string
+          scripts?: string | null
+          status?: string
+          type?: string | null
+          ui_components?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assets?: string | null
+          created_at?: string
+          design_document?: string | null
+          id?: string
+          name?: string
+          prompt?: string
+          scripts?: string | null
+          status?: string
+          type?: string | null
+          ui_components?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
