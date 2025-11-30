@@ -1,59 +1,64 @@
-import { Bot, FileCode, Palette, Box, Zap, CheckCircle } from "lucide-react";
+import { Brain, Wand2, FileCode, Layout, Layers, CheckCircle } from "lucide-react";
 
 const features = [
   {
-    icon: Bot,
-    title: "Multi-Agent AI System",
-    description: "Six specialized AI agents collaborate: Game Designer, World Builder, Script Engineer, UI Designer, Asset Manager, and Validator.",
+    icon: Brain,
+    title: "AI Game Designer",
+    description: "Create complete game design documents with mechanics, systems, and features using advanced AI.",
+  },
+  {
+    icon: Wand2,
+    title: "World Builder",
+    description: "Generate immersive environments, terrain, and game world structures automatically.",
   },
   {
     icon: FileCode,
-    title: "Complete Scripts",
-    description: "Generate optimized Luau code with proper structure, modules, and server/client logic.",
+    title: "Script Engine",
+    description: "Write professional Luau code with proper server/client architecture and optimizations.",
   },
   {
-    icon: Palette,
-    title: "UI Components",
-    description: "Create responsive interfaces with HUDs, menus, and interactive elements.",
+    icon: Layout,
+    title: "UI Generator",
+    description: "Design responsive user interfaces and HUD components that match your game's style.",
   },
   {
-    icon: Box,
-    title: "Asset Organization",
-    description: "Properly structured Roblox explorer with organized folders and naming conventions.",
-  },
-  {
-    icon: Zap,
-    title: "Real-Time Generation",
-    description: "Watch AI agents work step-by-step through the live terminal interface.",
+    icon: Layers,
+    title: "Asset Manager",
+    description: "Organize project structure and manage asset hierarchy for clean, professional projects.",
   },
   {
     icon: CheckCircle,
-    title: "Quality Validation",
-    description: "Automated testing and error checking before export to ensure code quality.",
+    title: "Code Validator",
+    description: "Test scripts and validate code quality before export to ensure bug-free games.",
   },
 ];
 
 export const Features = () => {
   return (
-    <section className="py-20 px-4 bg-card/30">
+    <section className="py-20 px-4 relative">
       <div className="container mx-auto max-w-6xl">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Powerful AI-Driven Features
+        <div className="text-center mb-16 animate-fade-in">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            Powered by Multi-Agent AI
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Advanced technology that handles every aspect of game development
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Six specialized AI agents working together to build your perfect game
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, i) => (
+          {features.map((feature, index) => (
             <div
-              key={i}
-              className="p-6 rounded-lg border border-border bg-background hover:border-primary/50 transition-colors"
+              key={index}
+              className="group p-6 rounded-xl glass-panel hover-glow transition-all duration-300 hover:scale-105 animate-fade-in"
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <feature.icon className="h-10 w-10 text-primary mb-4" />
-              <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+              <div className="bg-primary/10 w-14 h-14 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                <feature.icon className="h-7 w-7 text-primary-glow" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2 group-hover:text-primary-glow transition-colors">
+                {feature.title}
+              </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {feature.description}
               </p>
