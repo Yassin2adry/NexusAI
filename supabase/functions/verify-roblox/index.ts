@@ -44,9 +44,9 @@ serve(async (req) => {
 
     console.log(`Verifying Roblox username: ${username}`);
 
-    // Search for the user on Roblox
+    // Search for the user on Roblox (limit must be 10, 25, 50, or 100)
     const searchResponse = await fetch(
-      `https://users.roblox.com/v1/users/search?keyword=${encodeURIComponent(username)}&limit=1`
+      `https://users.roblox.com/v1/users/search?keyword=${encodeURIComponent(username)}&limit=10`
     );
 
     if (!searchResponse.ok) {
