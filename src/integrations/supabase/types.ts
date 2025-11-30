@@ -200,6 +200,8 @@ export type Database = {
           last_login_date: string | null
           last_streak_reward_date: string | null
           login_streak: number | null
+          referral_code: string | null
+          referred_by: string | null
           roblox_avatar_url: string | null
           roblox_user_id: string | null
           roblox_username: string | null
@@ -213,6 +215,8 @@ export type Database = {
           last_login_date?: string | null
           last_streak_reward_date?: string | null
           login_streak?: number | null
+          referral_code?: string | null
+          referred_by?: string | null
           roblox_avatar_url?: string | null
           roblox_user_id?: string | null
           roblox_username?: string | null
@@ -226,6 +230,8 @@ export type Database = {
           last_login_date?: string | null
           last_streak_reward_date?: string | null
           login_streak?: number | null
+          referral_code?: string | null
+          referred_by?: string | null
           roblox_avatar_url?: string | null
           roblox_user_id?: string | null
           roblox_username?: string | null
@@ -341,6 +347,39 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          created_at: string | null
+          credits_awarded: boolean | null
+          id: string
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          signup_bonus_awarded: boolean | null
+          task_bonus_awarded: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          credits_awarded?: boolean | null
+          id?: string
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          signup_bonus_awarded?: boolean | null
+          task_bonus_awarded?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          credits_awarded?: boolean | null
+          id?: string
+          referral_code?: string
+          referred_id?: string
+          referrer_id?: string
+          signup_bonus_awarded?: boolean | null
+          task_bonus_awarded?: boolean | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           completed_at: string | null
@@ -440,6 +479,7 @@ export type Database = {
         Args: { p_amount: number; p_task_id: string; p_user_id: string }
         Returns: boolean
       }
+      generate_referral_code: { Args: { user_id: string }; Returns: string }
       handle_daily_login: {
         Args: { p_user_id: string }
         Returns: {

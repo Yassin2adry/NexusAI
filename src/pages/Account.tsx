@@ -14,6 +14,7 @@ import { TaskHistory } from "@/components/TaskHistory";
 import { useCredits } from "@/hooks/use-credits";
 import { AchievementsPanel } from "@/components/AchievementsPanel";
 import { CreditsHistory } from "@/components/CreditsHistory";
+import { ReferralPanel } from "@/components/ReferralPanel";
 
 export default function Account() {
   const { user, loading: authLoading } = useAuth();
@@ -249,6 +250,9 @@ export default function Account() {
 
           {/* Achievements */}
           <AchievementsPanel />
+
+          {/* Referral System */}
+          <ReferralPanel />
 
           {/* Credits History */}
           <CreditsHistory />

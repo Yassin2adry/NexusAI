@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MarkdownMessage } from "@/components/MarkdownMessage";
 import { TaskTerminal } from "@/components/TaskTerminal";
+import { AiModeSelector } from "@/components/AiModeSelector";
 import { Plus, Send, Trash2, Edit2, MessageSquare, Loader2, Menu, X, Zap } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -41,6 +42,7 @@ export default function Chat() {
   const [newTitle, setNewTitle] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isFirstMessage, setIsFirstMessage] = useState(false);
+  const [aiMode, setAiMode] = useState<string>("balanced");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -282,6 +284,7 @@ export default function Chat() {
             chatSessionId: id,
             message: userMessage,
             taskType: "chat_message",
+            aiMode: aiMode,
           }),
         }
       );
@@ -455,9 +458,10 @@ export default function Chat() {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold truncate bg-gradient-to-r from-foreground to-primary-glow bg-clip-text text-transparent">
+            <h1 className="text-lg font-semibold truncate bg-gradient-to-r from-foreground to-primary-glow bg-clip-text text-transparent flex-1">
               {chatSessions.find((s) => s.id === id)?.title || "NexusAI Chat"}
             </h1>
+            <AiModeSelector selectedMode={aiMode} onModeChange={setAiMode} />
           </div>
 
           {id ? (
@@ -570,7 +574,9 @@ export default function Chat() {
                     <span>Press Enter to send, Shift+Enter for new line</span>
                     <div className="flex items-center gap-1">
                       <Zap className="h-3 w-3 text-primary-glow" />
-                      <span>1 credit per message</span>
+                      <span>
+                        {aiMode === "advanced" || aiMode === "expert" ? "2" : "1"} credit{(aiMode === "advanced" || aiMode === "expert") ? "s" : ""} per message
+                      </span>
                     </div>
                   </div>
                 </div>

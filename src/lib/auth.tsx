@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string, referralCode?: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
 }
@@ -59,16 +59,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       const isOwnerRoblox = profile?.roblox_username?.toLowerCase() === 'jameslovemm2';
       
-      // Grant unlimited credits if owner
+      // Grant unlimited credits if owner (immediate, not deferred)
       if (isOwnerEmail || isOwnerRoblox) {
-        setTimeout(async () => {
-          const { error } = await supabase
-            .from('credits')
-            .update({ amount: 999999 })
-            .eq('user_id', userId);
-          
-          if (error) console.error('Error updating owner credits:', error);
-        }, 0);
+        const { error } = await supabase
+          .from('credits')
+          .update({ amount: 999999 })
+          .eq('user_id', userId);
+        
+        if (error) {
+          console.error('Error updating owner credits:', error);
+        } else {
+          console.log('Owner privileges granted: unlimited credits');
+        }
       }
     } catch (error) {
       console.error('Error checking owner privileges:', error);
@@ -103,17 +105,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, referralCode?: string) => {
     try {
+      const options: any = {
+        data: {
+          full_name: fullName,
+        },
+        emailRedirectTo: `${window.location.origin}/roblox-link`,
+      };
+
+      // Add referral code if provided
+      if (referralCode) {
+        options.data.referral_code = referralCode;
+      }
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/roblox-link`,
-        },
+        options,
       });
       
       if (error) throw error;

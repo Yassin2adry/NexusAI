@@ -6,13 +6,41 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Credit costs for different task types
+// Credit costs for different task types and AI modes
 const CREDIT_COSTS = {
   chat_message: 1,
   project_generation: 10,
   script_generation: 5,
   ui_generation: 3,
   asset_generation: 2,
+};
+
+// AI mode configurations
+const AI_MODES = {
+  fast: {
+    name: "Fast Mode",
+    model: "google/gemini-2.5-flash-lite",
+    creditMultiplier: 1,
+    description: "Quick responses for simple questions"
+  },
+  balanced: {
+    name: "Balanced Mode",
+    model: "google/gemini-2.5-flash",
+    creditMultiplier: 1,
+    description: "Default mode with good balance"
+  },
+  advanced: {
+    name: "Advanced Mode",
+    model: "google/gemini-2.5-pro",
+    creditMultiplier: 2,
+    description: "Deeper analysis and better reasoning"
+  },
+  expert: {
+    name: "Expert Mode",
+    model: "google/gemini-2.5-pro",
+    creditMultiplier: 2,
+    description: "Maximum intelligence for complex tasks"
+  }
 };
 
 serve(async (req) => {
@@ -42,7 +70,7 @@ serve(async (req) => {
       });
     }
 
-    const { chatSessionId, message, taskType = "chat_message" } = await req.json();
+    const { chatSessionId, message, taskType = "chat_message", aiMode = "balanced" } = await req.json();
 
     if (!chatSessionId || !message) {
       return new Response(JSON.stringify({ error: "Missing chatSessionId or message" }), {
@@ -51,7 +79,9 @@ serve(async (req) => {
       });
     }
 
-    const creditCost = CREDIT_COSTS[taskType as keyof typeof CREDIT_COSTS] || CREDIT_COSTS.chat_message;
+    const mode = AI_MODES[aiMode as keyof typeof AI_MODES] || AI_MODES.balanced;
+    const baseCost = CREDIT_COSTS[taskType as keyof typeof CREDIT_COSTS] || CREDIT_COSTS.chat_message;
+    const creditCost = baseCost * mode.creditMultiplier;
 
     // Check if user has sufficient credits
     const { data: creditsCheck } = await supabaseClient.rpc("has_sufficient_credits", {
@@ -148,7 +178,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: mode.model,
         messages: [
           {
             role: "system",
