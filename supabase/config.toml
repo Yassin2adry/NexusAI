@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.verify-roblox]
 verify_jwt = true
+
+[functions.generate-chat-title]
+verify_jwt = true
