@@ -8,11 +8,13 @@ import { Cpu, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { ForgotPassword } from "@/components/ForgotPassword";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
 
@@ -93,7 +95,16 @@ export default function Login() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                  <button
+                    type="button"
+                    onClick={() => setForgotPasswordOpen(true)}
+                    className="text-xs text-primary-glow hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
                 <Input
                   id="password"
                   type="password"
@@ -123,6 +134,8 @@ export default function Login() {
           </Card>
         </div>
       </div>
+
+      <ForgotPassword open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen} />
     </div>
   );
 }

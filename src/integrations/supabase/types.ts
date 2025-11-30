@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          created_at: string
+          credit_reward: number
+          description: string
+          icon: string
+          id: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }
+        Insert: {
+          created_at?: string
+          credit_reward?: number
+          description: string
+          icon: string
+          id?: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }
+        Update: {
+          created_at?: string
+          credit_reward?: number
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           chat_session_id: string
@@ -99,27 +132,39 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          last_login_date: string | null
+          last_streak_reward_date: string | null
+          login_streak: number | null
           roblox_avatar_url: string | null
           roblox_user_id: string | null
           roblox_username: string | null
+          total_logins: number | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           full_name?: string | null
           id: string
+          last_login_date?: string | null
+          last_streak_reward_date?: string | null
+          login_streak?: number | null
           roblox_avatar_url?: string | null
           roblox_user_id?: string | null
           roblox_username?: string | null
+          total_logins?: number | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           full_name?: string | null
           id?: string
+          last_login_date?: string | null
+          last_streak_reward_date?: string | null
+          login_streak?: number | null
           roblox_avatar_url?: string | null
           roblox_user_id?: string | null
           roblox_username?: string | null
+          total_logins?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -211,14 +256,70 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      check_achievements: {
+        Args: { p_user_id: string }
+        Returns: {
+          created_at: string
+          credit_reward: number
+          description: string
+          icon: string
+          id: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "achievements"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       deduct_credits: {
         Args: { p_amount: number; p_task_id: string; p_user_id: string }
         Returns: boolean
+      }
+      handle_daily_login: {
+        Args: { p_user_id: string }
+        Returns: {
+          credits_awarded: number
+          is_streak_broken: boolean
+          new_streak: number
+        }[]
       }
       has_sufficient_credits: {
         Args: { p_amount: number; p_user_id: string }

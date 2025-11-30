@@ -59,19 +59,19 @@ export const Footer = () => {
             <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-primary-glow">Company</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors">
                   About
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
                   Blog
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -80,14 +80,14 @@ export const Footer = () => {
             <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-primary-glow">Legal</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
                   Terms of Service
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { useTheme, themes } from "@/hooks/use-theme";
 import { TaskHistory } from "@/components/TaskHistory";
 import { useCredits } from "@/hooks/use-credits";
+import { AchievementsPanel } from "@/components/AchievementsPanel";
 
 export default function Account() {
   const { user, loading: authLoading } = useAuth();
@@ -244,6 +245,9 @@ export default function Account() {
 
           {/* Task History */}
           <TaskHistory limit={10} />
+
+          {/* Achievements */}
+          <AchievementsPanel />
         </div>
       </div>
     </div>
