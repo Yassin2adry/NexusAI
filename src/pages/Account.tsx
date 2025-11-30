@@ -129,73 +129,81 @@ export default function Account() {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="container mx-auto px-4 pt-24 pb-12">
-        <div className="max-w-2xl mx-auto space-y-6">
+      <div className="container mx-auto px-4 pt-24 pb-12 relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-background" />
+        
+        <div className="max-w-3xl mx-auto space-y-8 relative z-10 animate-fade-in">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Account Settings</h1>
-            <p className="text-muted-foreground">Manage your profile and preferences</p>
+            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-foreground to-primary-glow bg-clip-text text-transparent">
+              Account Settings
+            </h1>
+            <p className="text-muted-foreground text-lg">Manage your profile and preferences</p>
           </div>
 
           {/* Credits Card */}
-          <Card className="p-6 border-border">
+          <Card className="p-8 glass-panel hover-glow transition-all">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <Zap className="h-6 w-6 text-primary" />
+              <div className="flex items-center gap-4">
+                <div className="p-4 rounded-xl bg-primary/10">
+                  <Zap className="h-8 w-8 text-primary-glow" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Available Credits</p>
-                  <p className="text-2xl font-bold">{credits}</p>
+                  <p className="text-sm text-muted-foreground mb-1">Available Credits</p>
+                  <p className="text-4xl font-bold bg-gradient-to-r from-foreground to-primary-glow bg-clip-text text-transparent">
+                    {credits}
+                  </p>
                 </div>
               </div>
-              <Button variant="outline">Buy More</Button>
+              <Button variant="outline" className="hover-glow">Buy More</Button>
             </div>
           </Card>
 
           {/* Profile Settings */}
-          <Card className="p-6 border-border">
-            <div className="flex items-center gap-2 mb-6">
-              <User className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold">Profile Information</h2>
+          <Card className="p-8 glass-panel hover-glow transition-all">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <User className="h-6 w-6 text-primary-glow" />
+              </div>
+              <h2 className="text-2xl font-semibold">Profile Information</h2>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={user?.email || ""}
                   disabled
-                  className="bg-muted border-border"
+                  className="bg-muted/30 border-border/50"
                 />
                 <p className="text-xs text-muted-foreground">Email cannot be changed</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
                 <Input
                   id="fullName"
                   type="text"
                   value={profile?.full_name || ""}
                   onChange={(e) => setProfile(prev => prev ? {...prev, full_name: e.target.value} : null)}
-                  className="bg-background border-border"
+                  className="bg-background/50 border-border/50 focus:border-primary-glow transition-colors"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="robloxUsername">
                   <div className="flex items-center gap-2">
-                    <Gamepad2 className="h-4 w-4" />
-                    Roblox Username
+                    <Gamepad2 className="h-4 w-4 text-primary-glow" />
+                    <span className="text-sm font-medium">Roblox Username</span>
                   </div>
                 </Label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   {profile?.roblox_avatar_url && (
                     <img
                       src={profile.roblox_avatar_url}
                       alt="Roblox Avatar"
-                      className="w-10 h-10 rounded-full border-2 border-primary"
+                      className="w-12 h-12 rounded-lg border-2 border-primary-glow"
                     />
                   )}
                   <Input
@@ -203,19 +211,19 @@ export default function Account() {
                     type="text"
                     value={profile?.roblox_username || ""}
                     onChange={(e) => setProfile(prev => prev ? {...prev, roblox_username: e.target.value} : null)}
-                    className="bg-background border-border flex-1"
+                    className="bg-background/50 border-border/50 focus:border-primary-glow transition-colors flex-1"
                     minLength={3}
                     maxLength={20}
                   />
                 </div>
                 {profile?.roblox_user_id && (
-                  <p className="text-xs text-muted-foreground">
-                    User ID: {profile.roblox_user_id} (Verified ✓)
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <span className="text-primary-glow">✓</span> Verified • User ID: {profile.roblox_user_id}
                   </p>
                 )}
               </div>
 
-              <Button onClick={saveProfile} disabled={saving} className="gap-2">
+              <Button onClick={saveProfile} disabled={saving} className="gap-2 hover-glow">
                 <Save className="h-4 w-4" />
                 {saving ? "Saving..." : "Save Changes"}
               </Button>

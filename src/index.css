@@ -8,49 +8,64 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Clean minimal dark theme */
-    --background: 0 0% 7%;
+    /* Insane dark purple/black theme */
+    --background: 0 0% 0%;
     --foreground: 0 0% 98%;
 
-    --card: 0 0% 10%;
+    --card: 270 45% 8%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 10%;
+    --popover: 270 45% 8%;
     --popover-foreground: 0 0% 98%;
 
-    /* Blue accent */
-    --primary: 217 91% 60%;
+    /* Dark purple accent */
+    --primary: 270 80% 25%;
     --primary-foreground: 0 0% 100%;
+    --primary-glow: 270 100% 60%;
     
-    /* Subtle secondary */
-    --secondary: 0 0% 15%;
+    /* Deep violet secondary */
+    --secondary: 270 60% 15%;
     --secondary-foreground: 0 0% 98%;
 
-    /* Muted grays */
-    --muted: 0 0% 15%;
+    /* Muted with purple tint */
+    --muted: 270 30% 12%;
     --muted-foreground: 0 0% 60%;
 
-    --accent: 0 0% 15%;
+    --accent: 270 70% 20%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 15%;
-    --ring: 217 91% 60%;
+    --border: 270 40% 15%;
+    --input: 270 40% 10%;
+    --ring: 270 100% 60%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(270 80% 25%), hsl(270 100% 60%));
+    --gradient-glow: linear-gradient(90deg, hsl(270 100% 60% / 0.2), hsl(280 100% 70% / 0.2));
+    
+    /* Shadows */
+    --shadow-glow: 0 0 40px hsl(270 100% 60% / 0.3);
+    --shadow-card: 0 10px 40px hsl(270 80% 10% / 0.5);
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="6" fill="%238b5cf6" opacity="0.6"/><circle cx="10" cy="10" r="2" fill="white"/></svg>') 10 10, auto;
   }
 
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Custom cursor for interactive elements */
+  a, button, [role="button"], input[type="submit"], input[type="button"] {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="%23a78bfa" opacity="0.8"/><circle cx="12" cy="12" r="3" fill="white"/></svg>') 12 12, pointer;
   }
   
   ::-webkit-scrollbar {
@@ -63,21 +78,33 @@ All colors MUST be HSL.
   }
   
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted));
+    background: hsl(var(--primary));
     border-radius: 4px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground));
+    background: hsl(var(--primary-glow));
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
+/* Glassy panel effect */
+@layer components {
+  .glass-panel {
+    @apply bg-card/40 backdrop-blur-xl border border-border/50;
+    box-shadow: var(--shadow-card);
   }
-
-  body {
-    @apply bg-background text-foreground;
+  
+  .glow-border {
+    @apply border-primary/50;
+    box-shadow: 0 0 20px hsl(var(--primary-glow) / 0.3);
+  }
+  
+  .hover-glow {
+    transition: all 0.3s ease;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: var(--shadow-glow);
+    border-color: hsl(var(--primary-glow));
   }
 }

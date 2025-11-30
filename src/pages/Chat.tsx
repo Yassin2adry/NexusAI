@@ -324,9 +324,9 @@ export default function Chat() {
   };
 
   const ChatSidebar = () => (
-    <div className="h-full border-r border-border flex flex-col bg-background">
-      <div className="p-4 border-b border-border">
-        <Button onClick={createNewChat} className="w-full gap-2" size="sm">
+    <div className="h-full border-r border-border/50 flex flex-col glass-panel">
+      <div className="p-4 border-b border-border/50">
+        <Button onClick={createNewChat} className="w-full gap-2 hover-glow" size="sm">
           <Plus className="h-4 w-4" />
           New Chat
         </Button>
@@ -337,8 +337,8 @@ export default function Chat() {
           <div
             key={session.id}
             onClick={() => navigate(`/chat/${session.id}`)}
-            className={`group p-3 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors ${
-              id === session.id ? "bg-muted" : ""
+            className={`group p-3 rounded-lg cursor-pointer hover:bg-primary/10 transition-all ${
+              id === session.id ? "bg-primary/20 border border-primary-glow/30" : ""
             }`}
           >
             {editingTitle === session.id ? (
@@ -436,16 +436,16 @@ export default function Chat() {
         {/* Chat Area */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top Bar */}
-          <div className="h-14 border-b border-border flex items-center px-4 gap-3 bg-background">
+          <div className="h-14 border-b border-border/50 flex items-center px-4 gap-3 glass-panel">
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden hover:bg-primary/10"
               onClick={() => setMobileMenuOpen(true)}
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold truncate">
+            <h1 className="text-lg font-semibold truncate bg-gradient-to-r from-foreground to-primary-glow bg-clip-text text-transparent">
               {chatSessions.find((s) => s.id === id)?.title || "NexusAI Chat"}
             </h1>
           </div>
@@ -453,12 +453,15 @@ export default function Chat() {
           {id ? (
             <>
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-background via-background to-background">
                 {messages.length === 0 && !sending && (
-                  <div className="flex items-center justify-center h-full">
+                  <div className="flex items-center justify-center h-full animate-fade-in">
                     <div className="text-center max-w-2xl px-4">
-                      <h3 className="text-lg font-semibold mb-2">Start Your Game Development Journey</h3>
-                      <p className="text-sm text-muted-foreground mb-6">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
+                        <MessageSquare className="h-8 w-8 text-primary-glow" />
+                      </div>
+                      <h3 className="text-2xl font-semibold mb-2">Start Your Game Development Journey</h3>
+                      <p className="text-sm text-muted-foreground mb-8">
                         I can help you with game design, Luau scripting, UI creation, and more!
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -471,7 +474,7 @@ export default function Chat() {
                           <button
                             key={i}
                             onClick={() => setInputMessage(suggestion.prompt)}
-                            className="p-4 text-left rounded-lg border border-border hover:border-primary hover:bg-muted/50 transition-all"
+                            className="p-4 text-left rounded-xl glass-panel hover-glow transition-all hover:scale-105"
                           >
                             <p className="font-medium text-sm mb-1">{suggestion.title}</p>
                             <p className="text-xs text-muted-foreground line-clamp-2">{suggestion.prompt}</p>
@@ -485,15 +488,15 @@ export default function Chat() {
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex ${
+                    className={`flex animate-fade-in ${
                       message.role === "user" ? "justify-end" : "justify-start"
                     }`}
                   >
                     <div
-                      className={`max-w-[85%] sm:max-w-[80%] p-4 rounded-lg ${
+                      className={`max-w-[85%] sm:max-w-[80%] p-4 rounded-xl ${
                         message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
+                          ? "bg-gradient-to-r from-primary to-primary-glow text-primary-foreground shadow-lg"
+                          : "glass-panel"
                       }`}
                     >
                       {message.role === "assistant" ? (
@@ -506,9 +509,9 @@ export default function Chat() {
                 ))}
                 
                 {sending && (
-                  <div className="flex justify-start">
-                    <div className="bg-muted p-4 rounded-lg flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                  <div className="flex justify-start animate-fade-in">
+                    <div className="glass-panel p-4 rounded-xl flex items-center gap-3">
+                      <Loader2 className="h-4 w-4 animate-spin text-primary-glow" />
                       <span className="text-sm">NexusAI is thinking...</span>
                     </div>
                   </div>
@@ -517,7 +520,7 @@ export default function Chat() {
               </div>
 
               {/* Input Area */}
-              <div className="p-4 border-t border-border bg-background">
+              <div className="p-4 border-t border-border/50 glass-panel">
                 <div className="max-w-4xl mx-auto flex gap-2">
                   <Textarea
                     ref={inputRef}
@@ -530,7 +533,7 @@ export default function Chat() {
                       }
                     }}
                     placeholder="Type your message... (Shift+Enter for new line)"
-                    className="resize-none bg-background border-border min-h-[60px]"
+                    className="resize-none bg-background/50 border-border/50 focus:border-primary-glow transition-all min-h-[60px]"
                     rows={3}
                     disabled={sending}
                   />
@@ -538,7 +541,7 @@ export default function Chat() {
                     onClick={sendMessage}
                     disabled={!inputMessage.trim() || sending}
                     size="icon"
-                    className="flex-shrink-0 h-[60px] w-[60px]"
+                    className="flex-shrink-0 h-[60px] w-[60px] hover-glow"
                   >
                     {sending ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
@@ -550,14 +553,16 @@ export default function Chat() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-center p-4">
+            <div className="flex-1 flex items-center justify-center text-center p-4 animate-fade-in">
               <div>
-                <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                <h2 className="text-xl font-semibold mb-2">Start a Conversation</h2>
-                <p className="text-muted-foreground mb-4 max-w-sm mx-auto">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6">
+                  <MessageSquare className="h-10 w-10 text-primary-glow" />
+                </div>
+                <h2 className="text-2xl font-semibold mb-3">Start a Conversation</h2>
+                <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
                   Select a chat from the sidebar or create a new one to begin chatting with NexusAI
                 </p>
-                <Button onClick={createNewChat} className="gap-2">
+                <Button onClick={createNewChat} className="gap-2 hover-glow">
                   <Plus className="h-4 w-4" />
                   New Chat
                 </Button>
