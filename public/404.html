@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting…</title>
+    <meta http-equiv="refresh" content="0; URL=/" />
+    <script>
+      // SPA fallback for GitHub Pages: rewrite path so index.html (the SPA) can handle routing.
+      (function() {
+        // If site is at /<repo>/... remove the first segment (repo name).
+        var path = location.pathname;
+        var parts = path.split('/');
+        if (parts.length > 2) {
+          // remove the repo name segment (e.g., /NexusAI/...)
+          parts.splice(1, 1);
+          var newPath = parts.join('/') || '/';
+          location.replace(newPath + location.search + location.hash);
+        } else {
+          location.replace('/' + location.search + location.hash);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    Redirecting…
+  </body>
+</html>
