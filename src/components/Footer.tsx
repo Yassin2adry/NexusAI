@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { Cpu } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 export const Footer = () => {
+  const { user } = useAuth();
   return (
     <footer className="border-t border-border bg-card/50 mt-20">
       <div className="container mx-auto px-4 py-12">
@@ -21,7 +23,7 @@ export const Footer = () => {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
               <li><Link to="/docs" className="hover:text-foreground transition-colors">Documentation</Link></li>
-              <li><Link to="/dashboard" className="hover:text-foreground transition-colors">Dashboard</Link></li>
+              {user && <li><Link to="/chat" className="hover:text-foreground transition-colors">Chat</Link></li>}
             </ul>
           </div>
 
