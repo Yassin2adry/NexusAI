@@ -18,6 +18,16 @@ import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import Tools from "./pages/Tools";
+import ScriptGenerator from "./pages/tools/ScriptGenerator";
+import UIBuilder from "./pages/tools/UIBuilder";
+import MapCreator from "./pages/tools/MapCreator";
+import BugFixer from "./pages/tools/BugFixer";
+import Marketplace from "./pages/Marketplace";
+import StudioSync from "./pages/StudioSync";
+import Projects from "./pages/Projects";
+import AILab from "./pages/AILab";
+import Learn from "./pages/Learn";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +49,16 @@ const App = () => (
             <Route path="/roblox-link" element={<RobloxLink />} />
             <Route path="/account" element={<Account />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/tools" element={<Tools />} />
+            <Route path="/tools/script-generator" element={<ScriptGenerator />} />
+            <Route path="/tools/ui-builder" element={<UIBuilder />} />
+            <Route path="/tools/map-creator" element={<MapCreator />} />
+            <Route path="/tools/bug-fixer" element={<BugFixer />} />
+            <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/studio-sync" element={<StudioSync />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/ai-lab" element={<AILab />} />
+            <Route path="/learn" element={<Learn />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/about" element={<About />} />
             <Route path="/blog" element={<Blog />} />
