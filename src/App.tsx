@@ -23,6 +23,12 @@ import ScriptGenerator from "./pages/tools/ScriptGenerator";
 import UIBuilder from "./pages/tools/UIBuilder";
 import MapCreator from "./pages/tools/MapCreator";
 import BugFixer from "./pages/tools/BugFixer";
+import OptimizationTool from "./pages/tools/OptimizationTool";
+import AnimationMaker from "./pages/tools/AnimationMaker";
+import DialogueWriter from "./pages/tools/DialogueWriter";
+import ModuleMaker from "./pages/tools/ModuleMaker";
+import BuildAssistant from "./pages/tools/BuildAssistant";
+import ObbyGenerator from "./pages/tools/ObbyGenerator";
 import Marketplace from "./pages/Marketplace";
 import StudioSync from "./pages/StudioSync";
 import Projects from "./pages/Projects";
@@ -50,10 +56,16 @@ const App = () => (
             <Route path="/account" element={<Account />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/tools" element={<Tools />} />
-            <Route path="/tools/script-generator" element={<ScriptGenerator />} />
-            <Route path="/tools/ui-builder" element={<UIBuilder />} />
-            <Route path="/tools/map-creator" element={<MapCreator />} />
-            <Route path="/tools/bug-fixer" element={<BugFixer />} />
+          <Route path="/tools/script-generator" element={<ScriptGenerator />} />
+          <Route path="/tools/ui-builder" element={<UIBuilder />} />
+          <Route path="/tools/map-creator" element={<MapCreator />} />
+          <Route path="/tools/bug-fixer" element={<BugFixer />} />
+          <Route path="/tools/optimization-tool" element={<OptimizationTool />} />
+          <Route path="/tools/animation-maker" element={<AnimationMaker />} />
+          <Route path="/tools/dialogue-writer" element={<DialogueWriter />} />
+          <Route path="/tools/module-maker" element={<ModuleMaker />} />
+          <Route path="/tools/build-assistant" element={<BuildAssistant />} />
+          <Route path="/tools/obby-generator" element={<ObbyGenerator />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/studio-sync" element={<StudioSync />} />
             <Route path="/projects" element={<Projects />} />
