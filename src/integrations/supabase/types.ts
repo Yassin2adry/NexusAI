@@ -165,6 +165,151 @@ export type Database = {
           },
         ]
       }
+      daily_credit_resets: {
+        Row: {
+          created_at: string | null
+          credits_awarded: number
+          id: string
+          reset_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          credits_awarded?: number
+          id?: string
+          reset_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          credits_awarded?: number
+          id?: string
+          reset_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      marketplace_items: {
+        Row: {
+          content: Json
+          created_at: string | null
+          description: string
+          downloads: number
+          id: string
+          name: string
+          preview_image: string | null
+          price: number
+          rating: number | null
+          status: string
+          total_ratings: number | null
+          type: string
+          updated_at: string | null
+          user_id: string
+          version: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string | null
+          description: string
+          downloads?: number
+          id?: string
+          name: string
+          preview_image?: string | null
+          price?: number
+          rating?: number | null
+          status?: string
+          total_ratings?: number | null
+          type: string
+          updated_at?: string | null
+          user_id: string
+          version?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string | null
+          description?: string
+          downloads?: number
+          id?: string
+          name?: string
+          preview_image?: string | null
+          price?: number
+          rating?: number | null
+          status?: string
+          total_ratings?: number | null
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      marketplace_purchases: {
+        Row: {
+          credits_spent: number
+          id: string
+          item_id: string
+          purchased_at: string | null
+          user_id: string
+        }
+        Insert: {
+          credits_spent: number
+          id?: string
+          item_id: string
+          purchased_at?: string | null
+          user_id: string
+        }
+        Update: {
+          credits_spent?: number
+          id?: string
+          item_id?: string
+          purchased_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_purchases_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_ratings: {
+        Row: {
+          created_at: string | null
+          id: string
+          item_id: string
+          rating: number
+          review: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          item_id: string
+          rating: number
+          review?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          item_id?: string
+          rating?: number
+          review?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_ratings_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plugin_tokens: {
         Row: {
           created_at: string
@@ -239,6 +384,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      project_collaborators: {
+        Row: {
+          id: string
+          invited_by: string | null
+          joined_at: string | null
+          project_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          project_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          project_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_collaborators_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_exports: {
         Row: {

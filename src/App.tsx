@@ -29,7 +29,7 @@ import DialogueWriter from "./pages/tools/DialogueWriter";
 import ModuleMaker from "./pages/tools/ModuleMaker";
 import BuildAssistant from "./pages/tools/BuildAssistant";
 import ObbyGenerator from "./pages/tools/ObbyGenerator";
-import Marketplace from "./pages/Marketplace";
+import MarketplaceNew from "./pages/MarketplaceNew";
 import StudioSync from "./pages/StudioSync";
 import Projects from "./pages/Projects";
 import AILab from "./pages/AILab";
@@ -66,7 +66,7 @@ const App = () => (
           <Route path="/tools/module-maker" element={<ModuleMaker />} />
           <Route path="/tools/build-assistant" element={<BuildAssistant />} />
           <Route path="/tools/obby-generator" element={<ObbyGenerator />} />
-            <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/marketplace" element={<MarketplaceNew />} />
             <Route path="/studio-sync" element={<StudioSync />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/ai-lab" element={<AILab />} />

@@ -3,10 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { MarkdownMessage } from "@/components/MarkdownMessage";
 import { TaskTerminal } from "@/components/TaskTerminal";
 import { AiModeSelector } from "@/components/AiModeSelector";
-import { Plus, Send, Trash2, Edit2, MessageSquare, Loader2, Menu, X, Zap } from "lucide-react";
+import { Plus, Send, Trash2, Edit2, MessageSquare, Loader2, Menu, X, Zap, Check } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
@@ -43,6 +53,7 @@ export default function Chat() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isFirstMessage, setIsFirstMessage] = useState(false);
   const [aiMode, setAiMode] = useState<string>("balanced");
+  const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -175,11 +186,7 @@ export default function Chat() {
     }
   };
 
-  const deleteChat = async (chatId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    if (!confirm("Are you sure you want to delete this chat? This cannot be undone.")) return;
-
+  const deleteChat = async (chatId: string) => {
     try {
       const { error } = await supabase
         .from("chat_sessions")
@@ -189,6 +196,7 @@ export default function Chat() {
       if (error) throw error;
 
       toast.success("Chat deleted");
+      setDeletingChatId(null);
       
       if (id === chatId) {
         navigate("/chat");
@@ -199,6 +207,12 @@ export default function Chat() {
       toast.error("Failed to delete chat");
       console.error("Error deleting chat:", error);
     }
+  };
+
+  const startEditingTitle = (chatId: string, currentTitle: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingTitle(chatId);
+    setNewTitle(currentTitle);
   };
 
   const updateChatTitle = async (chatId: string) => {
@@ -387,7 +401,10 @@ export default function Chat() {
                       <Edit2 className="h-3 w-3" />
                     </button>
                     <button
-                      onClick={(e) => deleteChat(session.id, e)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingChatId(session.id);
+                      }}
                       className="p-1 hover:bg-destructive/20 rounded"
                     >
                       <Trash2 className="h-3 w-3 text-destructive" />
@@ -601,6 +618,27 @@ export default function Chat() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingChatId} onOpenChange={(open) => !open && setDeletingChatId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Chat</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this chat? This action cannot be undone and all messages will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingChatId && deleteChat(deletingChatId)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

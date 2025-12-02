@@ -37,36 +37,39 @@ export default function ScriptGenerator() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            message: `Generate a Luau script for Roblox: ${prompt}`,
-            taskType: "script_generation",
-            aiMode: "expert",
-          }),
-        }
-      );
+      // Create a temporary chat session for this tool
+      const { data: chatSession, error: sessionError } = await supabase
+        .from("chat_sessions")
+        .insert({
+          user_id: user?.id,
+          title: "Script Generator",
+        })
+        .select()
+        .single();
 
-      if (!response.ok) {
-        const error = await response.json();
-        if (response.status === 402) {
-          toast.error("Insufficient credits. This tool requires 5 credits.");
+      if (sessionError) throw sessionError;
+
+      const response = await supabase.functions.invoke("ai-chat", {
+        body: {
+          chatSessionId: chatSession.id,
+          message: `Generate a complete, production-ready Luau script for Roblox with the following requirements: ${prompt}\n\nProvide ONLY the script code with detailed comments. Make it optimized and follow Roblox best practices.`,
+          taskType: "script_generation",
+          aiMode: "expert",
+        },
+      });
+
+      if (response.error) {
+        if (response.error.message?.includes("Insufficient credits")) {
+          toast.error("Insufficient credits. This tool requires 10 credits.");
         } else {
-          toast.error("Failed to generate script");
+          toast.error(response.error.message || "Failed to generate script");
         }
         setGenerating(false);
         return;
       }
 
-      const result = await response.json();
-      setGeneratedScript(result.response);
-      toast.success("Script generated successfully!");
+      setGeneratedScript(response.data.message);
+      toast.success("Script generated successfully! Used 10 credits.");
     } catch (error) {
       console.error("Error generating script:", error);
       toast.error("Network error. Please try again.");
@@ -109,7 +112,7 @@ export default function ScriptGenerator() {
               </div>
               <div>
                 <h1 className="text-4xl font-bold">AI Script Generator</h1>
-                <p className="text-muted-foreground">5 credits per generation</p>
+                <p className="text-muted-foreground">10 credits per generation</p>
               </div>
             </div>
             <p className="text-lg text-muted-foreground">
@@ -162,7 +165,7 @@ export default function ScriptGenerator() {
 
             <div className="space-y-6">
               {generating && (
-                <TaskTerminal isProcessing={generating} taskType="script_generation" creditCost={5} />
+                <TaskTerminal isProcessing={generating} taskType="script_generation" creditCost={10} />
               )}
 
               {generatedScript && !generating && (
