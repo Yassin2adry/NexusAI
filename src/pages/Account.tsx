@@ -3,7 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Gamepad2, Zap, Save, Palette } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { User, Gamepad2, Zap, Save, Palette, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +35,9 @@ export default function Account() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [profile, setProfile] = useState<{
     full_name: string | null;
     roblox_username: string | null;
@@ -256,6 +270,111 @@ export default function Account() {
 
           {/* Credits History */}
           <CreditsHistory />
+
+          {/* Danger Zone - Account Deletion */}
+          <Card className="p-8 glass-panel border-destructive/30 hover-glow transition-all">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 rounded-lg bg-destructive/10">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
+              </div>
+              <h2 className="text-2xl font-semibold text-destructive">Danger Zone</h2>
+            </div>
+
+            <p className="text-muted-foreground mb-6">
+              Permanently delete your account and all associated data. This action cannot be undone.
+              All your projects, chats, credits, and progress will be permanently erased.
+            </p>
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="gap-2">
+                  <Trash2 className="h-4 w-4" />
+                  Delete Account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="glass-panel border-destructive/30">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-destructive flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    Delete Account Permanently
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-left space-y-4">
+                    <p>This will permanently delete:</p>
+                    <ul className="list-disc pl-5 space-y-1 text-sm">
+                      <li>Your profile and all personal data</li>
+                      <li>All projects and exports</li>
+                      <li>All chat history and messages</li>
+                      <li>All credits and transactions</li>
+                      <li>All achievements and progress</li>
+                      <li>All room memberships</li>
+                    </ul>
+                    <p className="font-semibold text-destructive">
+                      This action is irreversible. You can sign up again with the same email after deletion.
+                    </p>
+                    <div className="pt-4">
+                      <Label htmlFor="confirm-password" className="text-foreground">
+                        Enter your password to confirm:
+                      </Label>
+                      <Input
+                        id="confirm-password"
+                        type="password"
+                        value={deletePassword}
+                        onChange={(e) => setDeletePassword(e.target.value)}
+                        placeholder="Your password"
+                        className="mt-2"
+                      />
+                    </div>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setDeletePassword("")}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <Button
+                    variant="destructive"
+                    disabled={!deletePassword || deleting}
+                    onClick={async () => {
+                      if (!deletePassword) {
+                        toast.error("Please enter your password");
+                        return;
+                      }
+                      
+                      setDeleting(true);
+                      try {
+                        const { data: { session } } = await supabase.auth.getSession();
+                        
+                        const { data, error } = await supabase.functions.invoke("delete-account", {
+                          body: { password: deletePassword },
+                        });
+                        
+                        if (error) throw error;
+                        if (data.error) throw new Error(data.error);
+                        
+                        toast.success("Account deleted successfully");
+                        setDeleteDialogOpen(false);
+                        navigate("/");
+                      } catch (error: any) {
+                        console.error("Delete error:", error);
+                        toast.error(error.message || "Failed to delete account");
+                      } finally {
+                        setDeleting(false);
+                        setDeletePassword("");
+                      }
+                    }}
+                  >
+                    {deleting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Deleting...
+                      </>
+                    ) : (
+                      "Delete My Account"
+                    )}
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </Card>
         </div>
       </div>
     </div>
