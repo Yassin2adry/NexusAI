@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { DailyLoginBonus } from "@/components/DailyLoginBonus";
+import { CustomCursor } from "@/components/animations/CustomCursor";
 import Index from "./pages/Index";
 import Chat from "./pages/Chat";
 import Login from "./pages/Login";
@@ -43,6 +44,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <CustomCursor />
       <BrowserRouter>
         <AuthProvider>
           <DailyLoginBonus />
@@ -56,16 +58,16 @@ const App = () => (
             <Route path="/account" element={<Account />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/tools" element={<Tools />} />
-          <Route path="/tools/script-generator" element={<ScriptGenerator />} />
-          <Route path="/tools/ui-builder" element={<UIBuilder />} />
-          <Route path="/tools/map-creator" element={<MapCreator />} />
-          <Route path="/tools/bug-fixer" element={<BugFixer />} />
-          <Route path="/tools/optimization-tool" element={<OptimizationTool />} />
-          <Route path="/tools/animation-maker" element={<AnimationMaker />} />
-          <Route path="/tools/dialogue-writer" element={<DialogueWriter />} />
-          <Route path="/tools/module-maker" element={<ModuleMaker />} />
-          <Route path="/tools/build-assistant" element={<BuildAssistant />} />
-          <Route path="/tools/obby-generator" element={<ObbyGenerator />} />
+            <Route path="/tools/script-generator" element={<ScriptGenerator />} />
+            <Route path="/tools/ui-builder" element={<UIBuilder />} />
+            <Route path="/tools/map-creator" element={<MapCreator />} />
+            <Route path="/tools/bug-fixer" element={<BugFixer />} />
+            <Route path="/tools/optimization-tool" element={<OptimizationTool />} />
+            <Route path="/tools/animation-maker" element={<AnimationMaker />} />
+            <Route path="/tools/dialogue-writer" element={<DialogueWriter />} />
+            <Route path="/tools/module-maker" element={<ModuleMaker />} />
+            <Route path="/tools/build-assistant" element={<BuildAssistant />} />
+            <Route path="/tools/obby-generator" element={<ObbyGenerator />} />
             <Route path="/marketplace" element={<MarketplaceNew />} />
             <Route path="/studio-sync" element={<StudioSync />} />
             <Route path="/projects" element={<Projects />} />
@@ -77,7 +79,6 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
