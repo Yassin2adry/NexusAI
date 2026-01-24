@@ -2,13 +2,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
-import { Cpu, Sparkles, Eye, EyeOff, Zap, Shield, ArrowRight } from "lucide-react";
+import { Cpu, Sparkles, Eye, EyeOff, Zap, Shield, ArrowRight, Lock, Mail } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { ForgotPassword } from "@/components/ForgotPassword";
 import { z } from "zod";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+import { ParticleField, GridOverlay } from "@/components/animations/ParticleField";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -22,6 +24,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
 
@@ -82,179 +85,401 @@ export default function Login() {
       {/* Animated background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: "1s" }} />
+        <ParticleField particleCount={30} />
+        <GridOverlay />
         
-        {/* Grid pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
+        <motion.div 
+          className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]"
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[100px]"
+          animate={{ 
+            scale: [1.2, 1, 1.2],
+            opacity: [0.5, 0.3, 0.5],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+        />
       </div>
 
       <div className="relative z-10 min-h-screen flex">
         {/* Left side - Branding */}
-        <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-12 xl:px-24">
+        <motion.div 
+          className="hidden lg:flex lg:w-1/2 flex-col justify-center px-12 xl:px-24"
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
           <div className="max-w-lg">
             <Link to="/" className="flex items-center gap-3 mb-12 group">
-              <div className="relative">
+              <motion.div 
+                className="relative"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.5 }}
+              >
                 <div className="absolute inset-0 bg-primary/50 blur-xl rounded-full group-hover:bg-primary/70 transition-colors" />
                 <Cpu className="h-12 w-12 text-primary-glow relative z-10" />
-                <Sparkles className="h-5 w-5 text-primary-glow absolute -top-1 -right-1 animate-pulse" />
-              </div>
+                <motion.div
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    opacity: [1, 0.8, 1],
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Sparkles className="h-5 w-5 text-primary-glow absolute -top-1 -right-1" />
+                </motion.div>
+              </motion.div>
               <span className="text-4xl font-black bg-gradient-to-r from-foreground via-primary-glow to-foreground bg-clip-text text-transparent">
                 NexusAI
               </span>
             </Link>
             
-            <h1 className="text-5xl xl:text-6xl font-black leading-tight mb-6">
+            <motion.h1 
+              className="text-5xl xl:text-6xl font-black leading-tight mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
               Welcome back,
-              <span className="block bg-gradient-to-r from-primary-glow to-accent bg-clip-text text-transparent">
+              <motion.span 
+                className="block bg-gradient-to-r from-primary-glow to-accent bg-clip-text text-transparent"
+                animate={{ 
+                  backgroundPosition: ["0%", "100%", "0%"],
+                }}
+                transition={{ duration: 5, repeat: Infinity }}
+                style={{ backgroundSize: "200%" }}
+              >
                 Creator.
-              </span>
-            </h1>
+              </motion.span>
+            </motion.h1>
             
-            <p className="text-xl text-muted-foreground mb-10 leading-relaxed">
+            <motion.p 
+              className="text-xl text-muted-foreground mb-10 leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
               Continue building incredible Roblox experiences with the power of AI. Your projects are waiting.
-            </p>
+            </motion.p>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+            <motion.div 
+              className="space-y-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <motion.div 
+                className="flex items-center gap-4 p-4 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm group"
+                whileHover={{ scale: 1.02, x: 5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <motion.div 
+                  className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                >
                   <Zap className="h-6 w-6 text-primary-glow" />
-                </div>
+                </motion.div>
                 <div>
                   <h3 className="font-semibold">100 Daily Credits</h3>
                   <p className="text-sm text-muted-foreground">Free credits every 24 hours</p>
                 </div>
-              </div>
+              </motion.div>
               
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm">
-                <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+              <motion.div 
+                className="flex items-center gap-4 p-4 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm group"
+                whileHover={{ scale: 1.02, x: 5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <motion.div 
+                  className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                >
                   <Shield className="h-6 w-6 text-accent" />
-                </div>
+                </motion.div>
                 <div>
                   <h3 className="font-semibold">Secure & Private</h3>
                   <p className="text-sm text-muted-foreground">Your data stays protected</p>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right side - Login form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
+        <motion.div 
+          className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12"
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
           <div className="w-full max-w-md">
             {/* Mobile logo */}
             <Link to="/" className="flex items-center justify-center gap-2 mb-8 lg:hidden">
-              <Cpu className="h-10 w-10 text-primary-glow" />
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              >
+                <Cpu className="h-10 w-10 text-primary-glow" />
+              </motion.div>
               <span className="text-3xl font-black bg-gradient-to-r from-foreground to-primary-glow bg-clip-text text-transparent">
                 NexusAI
               </span>
             </Link>
 
-            <div className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl p-8 shadow-2xl shadow-primary/5">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold mb-2">Sign In</h2>
-                <p className="text-muted-foreground">Enter your credentials to continue</p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium">
-                    Email Address
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className={`h-12 bg-background/50 border-border/50 focus:border-primary-glow focus:ring-2 focus:ring-primary/20 transition-all ${
-                      errors.email ? "border-destructive" : ""
-                    }`}
-                  />
-                  {errors.email && (
-                    <p className="text-xs text-destructive">{errors.email}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-sm font-medium">
-                      Password
-                    </Label>
-                    <button
-                      type="button"
-                      onClick={() => setForgotPasswordOpen(true)}
-                      className="text-xs text-primary-glow hover:underline font-medium"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className={`h-12 pr-12 bg-background/50 border-border/50 focus:border-primary-glow focus:ring-2 focus:ring-primary/20 transition-all ${
-                        errors.password ? "border-destructive" : ""
-                      }`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                  {errors.password && (
-                    <p className="text-xs text-destructive">{errors.password}</p>
-                  )}
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-opacity group" 
-                  disabled={loading}
+            <motion.div 
+              className="relative bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl p-8 shadow-2xl shadow-primary/5 overflow-hidden"
+              initial={{ opacity: 0, y: 20, rotateX: 10 }}
+              animate={{ opacity: 1, y: 0, rotateX: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              style={{ transformPerspective: 1000 }}
+            >
+              {/* Animated border */}
+              <motion.div
+                className="absolute inset-0 rounded-2xl"
+                style={{
+                  background: "linear-gradient(90deg, transparent, hsl(var(--primary-glow)), transparent)",
+                  backgroundSize: "200% 100%",
+                }}
+                animate={{
+                  backgroundPosition: ["200% 0", "-200% 0"],
+                }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              />
+              
+              <div className="relative z-10">
+                <motion.div 
+                  className="text-center mb-8"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
                 >
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                      Signing in...
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      Sign In
-                      <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </span>
-                  )}
-                </Button>
-              </form>
-
-              <div className="mt-8 pt-6 border-t border-border/50 text-center">
-                <p className="text-muted-foreground">
-                  Don't have an account?{" "}
-                  <Link 
-                    to="/signup" 
-                    className="text-primary-glow hover:underline font-semibold"
+                  <motion.div
+                    className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mb-4"
+                    animate={{ 
+                      boxShadow: [
+                        "0 0 20px hsl(var(--primary) / 0.3)",
+                        "0 0 40px hsl(var(--primary) / 0.5)",
+                        "0 0 20px hsl(var(--primary) / 0.3)",
+                      ],
+                    }}
+                    transition={{ duration: 2, repeat: Infinity }}
                   >
-                    Create one free
-                  </Link>
-                </p>
-              </div>
-            </div>
+                    <Lock className="h-8 w-8 text-primary-glow" />
+                  </motion.div>
+                  <h2 className="text-2xl font-bold mb-2">Sign In</h2>
+                  <p className="text-muted-foreground">Enter your credentials to continue</p>
+                </motion.div>
 
-            <p className="text-center text-xs text-muted-foreground mt-6">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <motion.div 
+                    className="space-y-2"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      Email Address
+                    </Label>
+                    <motion.div
+                      animate={{
+                        boxShadow: focusedField === "email" 
+                          ? "0 0 20px hsl(var(--primary) / 0.3)" 
+                          : "0 0 0px transparent",
+                      }}
+                      className="rounded-lg"
+                    >
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onFocus={() => setFocusedField("email")}
+                        onBlur={() => setFocusedField(null)}
+                        required
+                        className={`h-12 bg-background/50 border-border/50 focus:border-primary-glow focus:ring-2 focus:ring-primary/20 transition-all ${
+                          errors.email ? "border-destructive animate-shake" : ""
+                        }`}
+                      />
+                    </motion.div>
+                    <AnimatePresence>
+                      {errors.email && (
+                        <motion.p 
+                          className="text-xs text-destructive"
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                        >
+                          {errors.email}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+
+                  <motion.div 
+                    className="space-y-2"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password" className="text-sm font-medium flex items-center gap-2">
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                        Password
+                      </Label>
+                      <motion.button
+                        type="button"
+                        onClick={() => setForgotPasswordOpen(true)}
+                        className="text-xs text-primary-glow hover:underline font-medium"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Forgot password?
+                      </motion.button>
+                    </div>
+                    <motion.div 
+                      className="relative"
+                      animate={{
+                        boxShadow: focusedField === "password" 
+                          ? "0 0 20px hsl(var(--primary) / 0.3)" 
+                          : "0 0 0px transparent",
+                      }}
+                    >
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onFocus={() => setFocusedField("password")}
+                        onBlur={() => setFocusedField(null)}
+                        required
+                        className={`h-12 pr-12 bg-background/50 border-border/50 focus:border-primary-glow focus:ring-2 focus:ring-primary/20 transition-all ${
+                          errors.password ? "border-destructive animate-shake" : ""
+                        }`}
+                      />
+                      <motion.button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <AnimatePresence mode="wait">
+                          {showPassword ? (
+                            <motion.div
+                              key="hide"
+                              initial={{ opacity: 0, rotate: -90 }}
+                              animate={{ opacity: 1, rotate: 0 }}
+                              exit={{ opacity: 0, rotate: 90 }}
+                            >
+                              <EyeOff className="h-5 w-5" />
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="show"
+                              initial={{ opacity: 0, rotate: 90 }}
+                              animate={{ opacity: 1, rotate: 0 }}
+                              exit={{ opacity: 0, rotate: -90 }}
+                            >
+                              <Eye className="h-5 w-5" />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.button>
+                    </motion.div>
+                    <AnimatePresence>
+                      {errors.password && (
+                        <motion.p 
+                          className="text-xs text-destructive"
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                        >
+                          {errors.password}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                  >
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-all group relative overflow-hidden" 
+                      disabled={loading}
+                    >
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        animate={{ x: ["-100%", "100%"] }}
+                        transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                      />
+                      {loading ? (
+                        <span className="flex items-center gap-2 relative z-10">
+                          <motion.div 
+                            className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          />
+                          Signing in...
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2 relative z-10">
+                          Sign In
+                          <motion.span
+                            animate={{ x: [0, 5, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            <ArrowRight className="h-5 w-5" />
+                          </motion.span>
+                        </span>
+                      )}
+                    </Button>
+                  </motion.div>
+                </form>
+
+                <motion.div 
+                  className="mt-8 pt-6 border-t border-border/50 text-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  <p className="text-muted-foreground">
+                    Don't have an account?{" "}
+                    <Link 
+                      to="/signup" 
+                      className="text-primary-glow hover:underline font-semibold"
+                    >
+                      Create one free
+                    </Link>
+                  </p>
+                </motion.div>
+              </div>
+            </motion.div>
+
+            <motion.p 
+              className="text-center text-xs text-muted-foreground mt-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+            >
               By signing in, you agree to our{" "}
-              <Link to="/terms" className="underline hover:text-foreground">Terms</Link>
+              <Link to="/terms" className="underline hover:text-foreground transition-colors">Terms</Link>
               {" "}and{" "}
-              <Link to="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>
-            </p>
+              <Link to="/privacy" className="underline hover:text-foreground transition-colors">Privacy Policy</Link>
+            </motion.p>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <ForgotPassword open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen} />
