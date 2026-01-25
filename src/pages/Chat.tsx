@@ -16,13 +16,15 @@ import {
 import { MarkdownMessage } from "@/components/MarkdownMessage";
 import { TaskTerminal } from "@/components/TaskTerminal";
 import { AiModeSelector } from "@/components/AiModeSelector";
-import { Plus, Send, Trash2, Edit2, MessageSquare, Loader2, Menu, X, Zap, Check } from "lucide-react";
+import { Plus, Send, Trash2, Edit2, MessageSquare, Loader2, Menu, X, Zap, Check, Copy, Sparkles } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
+import { ParticleField, FloatingOrbs } from "@/components/animations/ParticleField";
 
 interface ChatSession {
   id: string;
@@ -37,6 +39,43 @@ interface Message {
   content: string;
   created_at: string;
 }
+
+// Typewriter effect component
+const TypewriterMessage = ({ content, onComplete }: { content: string; onComplete?: () => void }) => {
+  const [displayedContent, setDisplayedContent] = useState("");
+  const [isComplete, setIsComplete] = useState(false);
+  
+  useEffect(() => {
+    if (isComplete) return;
+    
+    let index = 0;
+    const interval = setInterval(() => {
+      if (index < content.length) {
+        setDisplayedContent(content.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(interval);
+        setIsComplete(true);
+        onComplete?.();
+      }
+    }, 10);
+    
+    return () => clearInterval(interval);
+  }, [content, isComplete, onComplete]);
+  
+  return (
+    <div className="relative">
+      <MarkdownMessage content={displayedContent} />
+      {!isComplete && (
+        <motion.span
+          className="inline-block w-2 h-4 bg-primary-glow ml-1"
+          animate={{ opacity: [1, 0] }}
+          transition={{ duration: 0.5, repeat: Infinity }}
+        />
+      )}
+    </div>
+  );
+};
 
 export default function Chat() {
   const { id } = useParams();
@@ -435,11 +474,51 @@ export default function Chat() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background relative overflow-hidden">
         <Navigation />
-        <div className="container mx-auto px-4 pt-24 pb-12">
+        <FloatingOrbs />
+        <div className="container mx-auto px-4 pt-24 pb-12 relative z-10">
           <div className="flex items-center justify-center h-[60vh]">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <motion.div
+              className="relative"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              {/* Pulsing rings */}
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="absolute inset-0 rounded-full border-2 border-primary-glow/30"
+                  initial={{ scale: 1, opacity: 0.5 }}
+                  animate={{ 
+                    scale: [1, 2, 2.5],
+                    opacity: [0.5, 0.2, 0],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    delay: i * 0.3,
+                    ease: "easeOut"
+                  }}
+                  style={{ width: 60, height: 60 }}
+                />
+              ))}
+              
+              {/* Center orb */}
+              <motion.div
+                className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center"
+                animate={{ 
+                  boxShadow: [
+                    "0 0 20px hsl(var(--primary-glow) / 0.4)",
+                    "0 0 40px hsl(var(--primary-glow) / 0.6)",
+                    "0 0 20px hsl(var(--primary-glow) / 0.4)",
+                  ]
+                }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                <Sparkles className="w-8 h-8 text-white" />
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -484,69 +563,137 @@ export default function Chat() {
           {id ? (
             <>
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-background via-background to-background">
-                {messages.length === 0 && !sending && (
-                  <div className="flex items-center justify-center h-full animate-fade-in">
-                    <div className="text-center max-w-2xl px-4">
-                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
-                        <MessageSquare className="h-8 w-8 text-primary-glow" />
-                      </div>
-                      <h3 className="text-2xl font-semibold mb-2">Start Your Game Development Journey</h3>
-                      <p className="text-sm text-muted-foreground mb-8">
-                        I can help you with game design, Luau scripting, UI creation, and more!
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {[
-                          { title: "🎮 Design a Game", prompt: "Help me design a multiplayer obby game with unique mechanics" },
-                          { title: "💻 Write Scripts", prompt: "Create a Luau script for a working inventory system" },
-                          { title: "🎨 Create UI", prompt: "Design a modern main menu for my game" },
-                          { title: "🛠️ Get Tips", prompt: "What are the best practices for Roblox game optimization?" },
-                        ].map((suggestion, i) => (
-                          <button
-                            key={i}
-                            onClick={() => setInputMessage(suggestion.prompt)}
-                            className="p-4 text-left rounded-xl glass-panel hover-glow transition-all hover:scale-105"
-                          >
-                            <p className="font-medium text-sm mb-1">{suggestion.title}</p>
-                            <p className="text-xs text-muted-foreground line-clamp-2">{suggestion.prompt}</p>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-background via-background to-background relative">
+                {/* Subtle background particles */}
+                <div className="absolute inset-0 pointer-events-none opacity-30">
+                  <ParticleField particleCount={15} />
+                </div>
                 
-                {messages.map((message) => (
-                  <div
+                <AnimatePresence>
+                  {messages.length === 0 && !sending && (
+                    <motion.div 
+                      className="flex items-center justify-center h-full"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                    >
+                      <div className="text-center max-w-2xl px-4">
+                        <motion.div 
+                          className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary-glow/20 mb-6"
+                          animate={{ 
+                            boxShadow: [
+                              "0 0 20px hsl(var(--primary-glow) / 0.2)",
+                              "0 0 40px hsl(var(--primary-glow) / 0.3)",
+                              "0 0 20px hsl(var(--primary-glow) / 0.2)",
+                            ]
+                          }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <Sparkles className="h-10 w-10 text-primary-glow" />
+                        </motion.div>
+                        <h3 className="text-3xl font-bold mb-3 bg-gradient-to-r from-foreground to-primary-glow bg-clip-text text-transparent">
+                          Start Your Game Development Journey
+                        </h3>
+                        <p className="text-muted-foreground mb-8">
+                          I can help you with game design, Luau scripting, UI creation, and more!
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {[
+                            { title: "🎮 Design a Game", prompt: "Help me design a multiplayer obby game with unique mechanics", color: "from-purple-500/20 to-pink-500/20" },
+                            { title: "💻 Write Scripts", prompt: "Create a Luau script for a working inventory system", color: "from-blue-500/20 to-cyan-500/20" },
+                            { title: "🎨 Create UI", prompt: "Design a modern main menu for my game", color: "from-orange-500/20 to-yellow-500/20" },
+                            { title: "🛠️ Get Tips", prompt: "What are the best practices for Roblox game optimization?", color: "from-green-500/20 to-emerald-500/20" },
+                          ].map((suggestion, i) => (
+                            <motion.button
+                              key={i}
+                              onClick={() => setInputMessage(suggestion.prompt)}
+                              className={`p-5 text-left rounded-xl glass-panel hover:border-primary-glow/50 transition-all group bg-gradient-to-br ${suggestion.color}`}
+                              initial={{ opacity: 0, y: 20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.1 * i }}
+                              whileHover={{ scale: 1.02, y: -2 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <p className="font-semibold text-base mb-2 group-hover:text-primary-glow transition-colors">{suggestion.title}</p>
+                              <p className="text-xs text-muted-foreground line-clamp-2">{suggestion.prompt}</p>
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                
+                {messages.map((message, index) => (
+                  <motion.div
                     key={message.id}
-                    className={`flex animate-fade-in ${
+                    className={`flex group ${
                       message.role === "user" ? "justify-end" : "justify-start"
                     }`}
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.3, delay: index === messages.length - 1 ? 0.1 : 0 }}
                   >
-                    <div
-                      className={`max-w-[85%] sm:max-w-[80%] p-4 rounded-xl ${
-                        message.role === "user"
-                          ? "bg-gradient-to-r from-primary to-primary-glow text-primary-foreground shadow-lg"
-                          : "glass-panel"
-                      }`}
-                    >
-                      {message.role === "assistant" ? (
-                        <MarkdownMessage content={message.content} />
-                      ) : (
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <div className="relative">
+                      <motion.div
+                        className={`max-w-[85%] sm:max-w-[80%] p-4 rounded-xl ${
+                          message.role === "user"
+                            ? "bg-gradient-to-r from-primary to-primary-glow text-primary-foreground shadow-lg shadow-primary/20"
+                            : "glass-panel border border-border/50"
+                        }`}
+                        whileHover={{ scale: 1.01 }}
+                      >
+                        {message.role === "assistant" ? (
+                          <MarkdownMessage content={message.content} />
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        )}
+                      </motion.div>
+                      
+                      {/* Copy button for assistant messages */}
+                      {message.role === "assistant" && (
+                        <motion.button
+                          className="absolute -right-10 top-2 opacity-0 group-hover:opacity-100 p-2 rounded-lg glass-panel hover:bg-primary/10 transition-all"
+                          onClick={() => {
+                            navigator.clipboard.writeText(message.content);
+                            toast.success("Copied to clipboard!");
+                          }}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <Copy className="h-4 w-4 text-muted-foreground" />
+                        </motion.button>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
                 
-                {sending && (
-                  <div className="flex justify-start animate-fade-in">
-                    <div className="glass-panel p-4 rounded-xl flex items-center gap-3">
-                      <Loader2 className="h-4 w-4 animate-spin text-primary-glow" />
-                      <span className="text-sm">NexusAI is thinking...</span>
-                    </div>
-                  </div>
-                )}
+                <AnimatePresence>
+                  {sending && (
+                    <motion.div 
+                      className="flex justify-start"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                    >
+                      <div className="glass-panel p-4 rounded-xl flex items-center gap-3">
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Sparkles className="h-5 w-5 text-primary-glow" />
+                        </motion.div>
+                        <span className="text-sm">NexusAI is thinking</span>
+                        <motion.span
+                          animate={{ opacity: [1, 0.3, 1] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        >
+                          ...
+                        </motion.span>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <div ref={messagesEndRef} />
               </div>
 
