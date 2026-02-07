@@ -1,8 +1,7 @@
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,18 +12,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MarkdownMessage } from "@/components/MarkdownMessage";
-import { TaskTerminal } from "@/components/TaskTerminal";
 import { AiModeSelector } from "@/components/AiModeSelector";
-import { Plus, Send, Trash2, Edit2, MessageSquare, Loader2, Menu, X, Zap, Check, Copy, Sparkles } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import {
+  ChatSidebar,
+  ChatSuggestions,
+  MessageBubble,
+  TypingIndicator,
+  ChatTerminal,
+} from "@/components/chat";
+import { Plus, Send, Menu, Loader2, Zap, RefreshCcw, StopCircle } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { ParticleField, FloatingOrbs } from "@/components/animations/ParticleField";
+import { FloatingOrbs } from "@/components/animations/ParticleField";
 
 interface ChatSession {
   id: string;
@@ -40,43 +43,6 @@ interface Message {
   created_at: string;
 }
 
-// Typewriter effect component
-const TypewriterMessage = ({ content, onComplete }: { content: string; onComplete?: () => void }) => {
-  const [displayedContent, setDisplayedContent] = useState("");
-  const [isComplete, setIsComplete] = useState(false);
-  
-  useEffect(() => {
-    if (isComplete) return;
-    
-    let index = 0;
-    const interval = setInterval(() => {
-      if (index < content.length) {
-        setDisplayedContent(content.slice(0, index + 1));
-        index++;
-      } else {
-        clearInterval(interval);
-        setIsComplete(true);
-        onComplete?.();
-      }
-    }, 10);
-    
-    return () => clearInterval(interval);
-  }, [content, isComplete, onComplete]);
-  
-  return (
-    <div className="relative">
-      <MarkdownMessage content={displayedContent} />
-      {!isComplete && (
-        <motion.span
-          className="inline-block w-2 h-4 bg-primary-glow ml-1"
-          animate={{ opacity: [1, 0] }}
-          transition={{ duration: 0.5, repeat: Infinity }}
-        />
-      )}
-    </div>
-  );
-};
-
 export default function Chat() {
   const { id } = useParams();
   const { user, loading: authLoading } = useAuth();
@@ -87,15 +53,15 @@ export default function Chat() {
   const [inputMessage, setInputMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [editingTitle, setEditingTitle] = useState<string | null>(null);
-  const [newTitle, setNewTitle] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isFirstMessage, setIsFirstMessage] = useState(false);
   const [aiMode, setAiMode] = useState<string>("balanced");
   const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -139,14 +105,14 @@ export default function Chat() {
       if (!data?.roblox_username) {
         navigate("/roblox-link");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error checking Roblox link:", error);
     }
   };
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
   const loadChatSessions = async () => {
     try {
@@ -157,7 +123,6 @@ export default function Chat() {
 
       if (error) throw error;
 
-      // Load last message for each session
       const sessionsWithLastMessage = await Promise.all(
         (sessions || []).map(async (session) => {
           const { data: lastMsg } = await supabase
@@ -176,7 +141,7 @@ export default function Chat() {
       );
 
       setChatSessions(sessionsWithLastMessage);
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Failed to load chat sessions");
       console.error("Error loading chat sessions:", error);
     } finally {
@@ -197,7 +162,7 @@ export default function Chat() {
       const msgs = (data || []) as Message[];
       setMessages(msgs);
       setIsFirstMessage(msgs.length === 0);
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Failed to load messages");
       console.error("Error loading messages:", error);
     }
@@ -219,7 +184,7 @@ export default function Chat() {
       toast.success("New chat created!");
       navigate(`/chat/${data.id}`);
       loadChatSessions();
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Failed to create new chat");
       console.error("Error creating chat:", error);
     }
@@ -242,36 +207,24 @@ export default function Chat() {
       }
       
       loadChatSessions();
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Failed to delete chat");
       console.error("Error deleting chat:", error);
     }
   };
 
-  const startEditingTitle = (chatId: string, currentTitle: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setEditingTitle(chatId);
-    setNewTitle(currentTitle);
-  };
-
-  const updateChatTitle = async (chatId: string) => {
-    if (!newTitle.trim()) {
-      setEditingTitle(null);
-      return;
-    }
-
+  const updateChatTitle = async (chatId: string, newTitle: string) => {
     try {
       const { error } = await supabase
         .from("chat_sessions")
-        .update({ title: newTitle.trim() })
+        .update({ title: newTitle })
         .eq("id", chatId);
 
       if (error) throw error;
 
       toast.success("Chat renamed");
-      setEditingTitle(null);
       loadChatSessions();
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Failed to rename chat");
       console.error("Error renaming chat:", error);
     }
@@ -296,26 +249,34 @@ export default function Chat() {
         }
       );
 
-      // Reload chat sessions to get the new title
       loadChatSessions();
     } catch (error) {
       console.error("Error generating title:", error);
-      // Non-critical error, don't show toast
+    }
+  };
+
+  const stopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setSending(false);
+      setStreamingMessageId(null);
     }
   };
 
   const sendMessage = async () => {
     if (!inputMessage.trim() || !id || sending) return;
 
+    abortControllerRef.current = new AbortController();
     setSending(true);
     const userMessage = inputMessage;
     const wasFirstMessage = isFirstMessage;
     setInputMessage("");
     setIsFirstMessage(false);
 
-    // Optimistically add user message
+    const tempUserMsgId = `temp-user-${Date.now()}`;
     const tempUserMsg: Message = {
-      id: `temp-${Date.now()}`,
+      id: tempUserMsgId,
       role: "user",
       content: userMessage,
       created_at: new Date().toISOString(),
@@ -339,6 +300,7 @@ export default function Chat() {
             taskType: "chat_message",
             aiMode: aiMode,
           }),
+          signal: abortControllerRef.current.signal,
         }
       );
 
@@ -354,124 +316,43 @@ export default function Chat() {
           toast.error("AI couldn't process this request. Please try again.");
         }
         
-        // Remove optimistic message on error
-        setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
+        setMessages((prev) => prev.filter((m) => m.id !== tempUserMsgId));
         setSending(false);
         return;
       }
 
       const result = await response.json();
 
-      // Show success notification with credits used
       if (result.creditsUsed) {
         toast.success(`Task completed! ${result.creditsUsed} credits used.`);
       }
 
-      // Reload messages to get the actual saved messages
       await loadMessages(id);
       await loadChatSessions();
 
-      // Generate title if this was the first message
       if (wasFirstMessage) {
         generateChatTitle(id, userMessage);
       }
 
-      // Focus input for next message
       inputRef.current?.focus();
-    } catch (error: any) {
-      console.error("Error sending message:", error);
-      toast.error("Network error. Please check your connection and try again.");
-      
-      // Remove optimistic message on error
-      setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast.info("Generation stopped");
+      } else {
+        console.error("Error sending message:", error);
+        toast.error("Network error. Please check your connection and try again.");
+        setMessages((prev) => prev.filter((m) => m.id !== tempUserMsgId));
+      }
     } finally {
       setSending(false);
+      setStreamingMessageId(null);
+      abortControllerRef.current = null;
     }
   };
 
-  const ChatSidebar = () => (
-    <div className="h-full border-r border-border/50 flex flex-col glass-panel">
-      <div className="p-4 border-b border-border/50">
-        <Button onClick={createNewChat} className="w-full gap-2 hover-glow" size="sm">
-          <Plus className="h-4 w-4" />
-          New Chat
-        </Button>
-      </div>
+  const creditCost = aiMode === "advanced" || aiMode === "expert" ? 2 : 1;
 
-      <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1">
-        {chatSessions.map((session) => (
-          <div
-            key={session.id}
-            onClick={() => navigate(`/chat/${session.id}`)}
-            className={`group p-3 rounded-lg cursor-pointer hover:bg-primary/10 transition-all ${
-              id === session.id ? "bg-primary/20 border border-primary-glow/30" : ""
-            }`}
-          >
-            {editingTitle === session.id ? (
-              <div onClick={(e) => e.stopPropagation()}>
-                <Input
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  onBlur={() => updateChatTitle(session.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") updateChatTitle(session.id);
-                    if (e.key === "Escape") setEditingTitle(null);
-                  }}
-                  autoFocus
-                  className="h-7 text-sm"
-                />
-              </div>
-            ) : (
-              <>
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <MessageSquare className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                    <span className="text-sm font-medium truncate">{session.title}</span>
-                  </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingTitle(session.id);
-                        setNewTitle(session.title);
-                      }}
-                      className="p-1 hover:bg-background rounded"
-                    >
-                      <Edit2 className="h-3 w-3" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeletingChatId(session.id);
-                      }}
-                      className="p-1 hover:bg-destructive/20 rounded"
-                    >
-                      <Trash2 className="h-3 w-3 text-destructive" />
-                    </button>
-                  </div>
-                </div>
-                {session.lastMessage && (
-                  <p className="text-xs text-muted-foreground truncate pl-6">
-                    {session.lastMessage}
-                  </p>
-                )}
-                <p className="text-xs text-muted-foreground mt-1 pl-6">
-                  {formatDistanceToNow(new Date(session.updated_at), { addSuffix: true })}
-                </p>
-              </>
-            )}
-          </div>
-        ))}
-
-        {chatSessions.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-8">
-            No chats yet. Create one to start!
-          </p>
-        )}
-      </div>
-    </div>
-  );
-
+  // Loading state
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background relative overflow-hidden">
@@ -484,7 +365,6 @@ export default function Chat() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              {/* Pulsing rings */}
               {[0, 1, 2].map((i) => (
                 <motion.div
                   key={i}
@@ -504,9 +384,8 @@ export default function Chat() {
                 />
               ))}
               
-              {/* Center orb */}
               <motion.div
-                className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center"
+                className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center glow-box"
                 animate={{ 
                   boxShadow: [
                     "0 0 20px hsl(var(--primary-glow) / 0.4)",
@@ -516,7 +395,11 @@ export default function Chat() {
                 }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <Sparkles className="w-8 h-8 text-white" />
+                <motion.div
+                  className="w-8 h-8 rounded-full bg-background/20"
+                  animate={{ scale: [1, 0.8, 1] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                />
               </motion.div>
             </motion.div>
           </div>
@@ -531,21 +414,42 @@ export default function Chat() {
 
       <div className="flex-1 flex overflow-hidden pt-16">
         {/* Desktop Sidebar */}
-        <div className="hidden md:block w-64">
-          <ChatSidebar />
+        <div className="hidden md:block w-72">
+          <ChatSidebar
+            sessions={chatSessions}
+            currentSessionId={id}
+            onCreateNew={createNewChat}
+            onSelectSession={(sessionId) => navigate(`/chat/${sessionId}`)}
+            onDeleteSession={(sessionId) => setDeletingChatId(sessionId)}
+            onRenameSession={updateChatTitle}
+          />
         </div>
 
         {/* Mobile Sidebar */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left" className="w-64 p-0">
-            <ChatSidebar />
+          <SheetContent side="left" className="w-72 p-0">
+            <ChatSidebar
+              sessions={chatSessions}
+              currentSessionId={id}
+              onCreateNew={createNewChat}
+              onSelectSession={(sessionId) => {
+                navigate(`/chat/${sessionId}`);
+                setMobileMenuOpen(false);
+              }}
+              onDeleteSession={(sessionId) => setDeletingChatId(sessionId)}
+              onRenameSession={updateChatTitle}
+            />
           </SheetContent>
         </Sheet>
 
         {/* Chat Area */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top Bar */}
-          <div className="h-14 border-b border-border/50 flex items-center px-4 gap-3 glass-panel">
+          <motion.div 
+            className="h-14 border-b border-border/50 flex items-center px-4 gap-3 glass-panel"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+          >
             <Button
               variant="ghost"
               size="icon"
@@ -554,153 +458,70 @@ export default function Chat() {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold truncate bg-gradient-to-r from-foreground to-primary-glow bg-clip-text text-transparent flex-1">
+            
+            <h1 className="text-lg font-semibold truncate gradient-text-premium flex-1">
               {chatSessions.find((s) => s.id === id)?.title || "NexusAI Chat"}
             </h1>
+            
             <AiModeSelector selectedMode={aiMode} onModeChange={setAiMode} />
-          </div>
+          </motion.div>
 
           {id ? (
             <>
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-background via-background to-background relative">
-                {/* Subtle background particles */}
-                <div className="absolute inset-0 pointer-events-none opacity-30">
-                  <ParticleField particleCount={15} />
-                </div>
+                {/* Background pattern */}
+                <div className="absolute inset-0 grid-pattern opacity-30 pointer-events-none" />
                 
-                <AnimatePresence>
+                <AnimatePresence mode="wait">
                   {messages.length === 0 && !sending && (
-                    <motion.div 
-                      className="flex items-center justify-center h-full"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                    >
-                      <div className="text-center max-w-2xl px-4">
-                        <motion.div 
-                          className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary-glow/20 mb-6"
-                          animate={{ 
-                            boxShadow: [
-                              "0 0 20px hsl(var(--primary-glow) / 0.2)",
-                              "0 0 40px hsl(var(--primary-glow) / 0.3)",
-                              "0 0 20px hsl(var(--primary-glow) / 0.2)",
-                            ]
-                          }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <Sparkles className="h-10 w-10 text-primary-glow" />
-                        </motion.div>
-                        <h3 className="text-3xl font-bold mb-3 bg-gradient-to-r from-foreground to-primary-glow bg-clip-text text-transparent">
-                          Start Your Game Development Journey
-                        </h3>
-                        <p className="text-muted-foreground mb-8">
-                          I can help you with game design, Luau scripting, UI creation, and more!
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {[
-                            { title: "🎮 Design a Game", prompt: "Help me design a multiplayer obby game with unique mechanics", color: "from-purple-500/20 to-pink-500/20" },
-                            { title: "💻 Write Scripts", prompt: "Create a Luau script for a working inventory system", color: "from-blue-500/20 to-cyan-500/20" },
-                            { title: "🎨 Create UI", prompt: "Design a modern main menu for my game", color: "from-orange-500/20 to-yellow-500/20" },
-                            { title: "🛠️ Get Tips", prompt: "What are the best practices for Roblox game optimization?", color: "from-green-500/20 to-emerald-500/20" },
-                          ].map((suggestion, i) => (
-                            <motion.button
-                              key={i}
-                              onClick={() => setInputMessage(suggestion.prompt)}
-                              className={`p-5 text-left rounded-xl glass-panel hover:border-primary-glow/50 transition-all group bg-gradient-to-br ${suggestion.color}`}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.1 * i }}
-                              whileHover={{ scale: 1.02, y: -2 }}
-                              whileTap={{ scale: 0.98 }}
-                            >
-                              <p className="font-semibold text-base mb-2 group-hover:text-primary-glow transition-colors">{suggestion.title}</p>
-                              <p className="text-xs text-muted-foreground line-clamp-2">{suggestion.prompt}</p>
-                            </motion.button>
-                          ))}
-                        </div>
-                      </div>
-                    </motion.div>
+                    <ChatSuggestions onSelect={setInputMessage} />
                   )}
                 </AnimatePresence>
                 
                 {messages.map((message, index) => (
-                  <motion.div
+                  <MessageBubble
                     key={message.id}
-                    className={`flex group ${
-                      message.role === "user" ? "justify-end" : "justify-start"
-                    }`}
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.3, delay: index === messages.length - 1 ? 0.1 : 0 }}
-                  >
-                    <div className="relative">
-                      <motion.div
-                        className={`max-w-[85%] sm:max-w-[80%] p-4 rounded-xl ${
-                          message.role === "user"
-                            ? "bg-gradient-to-r from-primary to-primary-glow text-primary-foreground shadow-lg shadow-primary/20"
-                            : "glass-panel border border-border/50"
-                        }`}
-                        whileHover={{ scale: 1.01 }}
-                      >
-                        {message.role === "assistant" ? (
-                          <MarkdownMessage content={message.content} />
-                        ) : (
-                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        )}
-                      </motion.div>
-                      
-                      {/* Copy button for assistant messages */}
-                      {message.role === "assistant" && (
-                        <motion.button
-                          className="absolute -right-10 top-2 opacity-0 group-hover:opacity-100 p-2 rounded-lg glass-panel hover:bg-primary/10 transition-all"
-                          onClick={() => {
-                            navigator.clipboard.writeText(message.content);
-                            toast.success("Copied to clipboard!");
-                          }}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <Copy className="h-4 w-4 text-muted-foreground" />
-                        </motion.button>
-                      )}
-                    </div>
-                  </motion.div>
+                    id={message.id}
+                    role={message.role}
+                    content={message.content}
+                    timestamp={message.created_at}
+                    isNew={index === messages.length - 1}
+                    isStreaming={message.id === streamingMessageId}
+                    onQuote={(content) => setInputMessage(`> ${content}\n\n`)}
+                  />
                 ))}
                 
                 <AnimatePresence>
                   {sending && (
-                    <motion.div 
-                      className="flex justify-start"
+                    <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
                     >
-                      <div className="glass-panel p-4 rounded-xl flex items-center gap-3">
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        >
-                          <Sparkles className="h-5 w-5 text-primary-glow" />
-                        </motion.div>
-                        <span className="text-sm">NexusAI is thinking</span>
-                        <motion.span
-                          animate={{ opacity: [1, 0.3, 1] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        >
-                          ...
-                        </motion.span>
-                      </div>
+                      <TypingIndicator variant="sparkle" />
                     </motion.div>
                   )}
                 </AnimatePresence>
+                
                 <div ref={messagesEndRef} />
               </div>
 
               {/* Input Area */}
-              <div className="p-4 border-t border-border/50 glass-panel space-y-3">
-                {/* Terminal */}
-                {sending && <TaskTerminal isProcessing={sending} creditCost={1} />}
+              <motion.div 
+                className="p-4 border-t border-border/50 glass-panel space-y-3"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+              >
+                {/* Terminal (only when processing) */}
+                <AnimatePresence>
+                  {sending && (
+                    <ChatTerminal 
+                      isProcessing={sending} 
+                      creditCost={creditCost}
+                    />
+                  )}
+                </AnimatePresence>
                 
                 <div className="max-w-4xl mx-auto">
                   <div className="flex gap-2">
@@ -715,22 +536,40 @@ export default function Chat() {
                         }
                       }}
                       placeholder="Type your message... (Shift+Enter for new line)"
-                      className="resize-none bg-background/50 border-border/50 focus:border-primary-glow transition-all min-h-[60px]"
+                      className="resize-none bg-background/50 border-border/50 focus:border-primary-glow transition-all min-h-[60px] input-glow"
                       rows={3}
                       disabled={sending}
                     />
-                    <Button
-                      onClick={sendMessage}
-                      disabled={!inputMessage.trim() || sending}
-                      size="icon"
-                      className="flex-shrink-0 h-[60px] w-[60px] hover-glow"
-                    >
-                      {sending ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
+                    
+                    {sending ? (
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          onClick={stopGeneration}
+                          variant="outline"
+                          size="icon"
+                          className="flex-shrink-0 h-[28px] w-[60px] hover:bg-destructive/10 hover:border-destructive/50"
+                        >
+                          <StopCircle className="h-4 w-4 text-destructive" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="flex-shrink-0 h-[28px] w-[60px] opacity-50 cursor-not-allowed"
+                          disabled
+                        >
+                          <RefreshCcw className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={sendMessage}
+                        disabled={!inputMessage.trim()}
+                        size="icon"
+                        className="flex-shrink-0 h-[60px] w-[60px] hover-glow"
+                      >
                         <Send className="h-5 w-5" />
-                      )}
-                    </Button>
+                      </Button>
+                    )}
                   </div>
                   
                   {/* Credit cost indicator */}
@@ -738,21 +577,33 @@ export default function Chat() {
                     <span>Press Enter to send, Shift+Enter for new line</span>
                     <div className="flex items-center gap-1">
                       <Zap className="h-3 w-3 text-primary-glow" />
-                      <span>
-                        {aiMode === "advanced" || aiMode === "expert" ? "2" : "1"} credit{(aiMode === "advanced" || aiMode === "expert") ? "s" : ""} per message
-                      </span>
+                      <span>{creditCost} credit{creditCost > 1 ? 's' : ''} per message</span>
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-center p-4 animate-fade-in">
+            <motion.div 
+              className="flex-1 flex items-center justify-center text-center p-4"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
               <div>
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6">
-                  <MessageSquare className="h-10 w-10 text-primary-glow" />
-                </div>
-                <h2 className="text-2xl font-semibold mb-3">Start a Conversation</h2>
+                <motion.div 
+                  className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6"
+                  animate={{ 
+                    boxShadow: [
+                      "0 0 20px hsl(var(--primary-glow) / 0.2)",
+                      "0 0 40px hsl(var(--primary-glow) / 0.3)",
+                      "0 0 20px hsl(var(--primary-glow) / 0.2)",
+                    ]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Menu className="h-10 w-10 text-primary-glow" />
+                </motion.div>
+                <h2 className="text-2xl font-semibold mb-3 gradient-text">Start a Conversation</h2>
                 <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
                   Select a chat from the sidebar or create a new one to begin chatting with NexusAI
                 </p>
@@ -761,14 +612,14 @@ export default function Chat() {
                   New Chat
                 </Button>
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deletingChatId} onOpenChange={(open) => !open && setDeletingChatId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="glass-panel-solid">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Chat</AlertDialogTitle>
             <AlertDialogDescription>
