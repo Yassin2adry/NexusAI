@@ -2,10 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Premium Cyber-Futuristic Design System */
+/* ============================================
+   NEXUSAI PREMIUM DESIGN SYSTEM
+   Version 2.0 - Full GUI Rework
+   ============================================ */
+
+/* ===========================================
+   DESIGN TOKENS & CSS VARIABLES
+   =========================================== */
 
 @layer base {
   :root {
+    /* Motion System Tokens */
+    --motion-fast: 150ms;
+    --motion-medium: 350ms;
+    --motion-slow: 600ms;
+    --motion-slower: 800ms;
+    
+    /* Easing Functions */
+    --ease-entrance: cubic-bezier(0.16, 0.84, 0.33, 1);
+    --ease-micro: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
     /* Core Theme Colors - Deep Purple/Black Cyber */
     --background: 270 50% 3%;
     --foreground: 270 10% 95%;
@@ -29,23 +48,66 @@
     --ring: 270 100% 65%;
     --radius: 0.75rem;
     
+    /* Semantic Colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+    
     /* Neon Accent Colors */
     --neon-blue: 210 100% 60%;
     --neon-purple: 270 100% 65%;
     --neon-cyan: 180 100% 50%;
     --neon-pink: 320 100% 60%;
+    --neon-green: 142 100% 50%;
+    --neon-orange: 25 100% 55%;
     
     /* Gradient definitions */
     --gradient-primary: linear-gradient(135deg, hsl(270 100% 65%), hsl(320 100% 60%));
     --gradient-dark: linear-gradient(180deg, hsl(270 50% 3%), hsl(270 50% 1%));
     --gradient-glow: radial-gradient(circle at 50% 50%, hsl(270 100% 65% / 0.2), transparent 70%);
+    --gradient-mesh: radial-gradient(at 40% 20%, hsl(270 100% 65% / 0.15) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(320 100% 60% / 0.1) 0px, transparent 50%),
+                     radial-gradient(at 0% 50%, hsl(270 100% 65% / 0.1) 0px, transparent 50%);
     
     /* Shadow definitions */
     --shadow-neon: 0 0 20px hsl(270 100% 65% / 0.4), 0 0 60px hsl(270 100% 65% / 0.2);
+    --shadow-neon-intense: 0 0 30px hsl(270 100% 65% / 0.5), 0 0 60px hsl(270 100% 65% / 0.3), 0 0 100px hsl(270 100% 65% / 0.2);
     --shadow-depth: 0 25px 50px -12px hsl(270 50% 3% / 0.8);
     --shadow-card: 0 4px 30px hsl(270 100% 65% / 0.1);
+    --shadow-elevated: 0 10px 40px -10px hsl(270 50% 3% / 0.5), 0 0 20px hsl(270 100% 65% / 0.1);
+    
+    /* Sidebar */
+    --sidebar-background: 270 45% 6%;
+    --sidebar-foreground: 270 10% 95%;
+    --sidebar-primary: 270 100% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 270 70% 18%;
+    --sidebar-accent-foreground: 270 10% 95%;
+    --sidebar-border: 270 40% 12%;
+    --sidebar-ring: 270 100% 65%;
+  }
+  
+  /* Light theme fallback */
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 270 50% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 270 50% 10%;
+    --primary: 270 80% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 270 100% 55%;
+    --muted: 270 10% 90%;
+    --muted-foreground: 270 10% 40%;
+    --border: 270 20% 85%;
   }
 }
+
+/* ===========================================
+   BASE STYLES
+   =========================================== */
 
 @layer base {
   * {
@@ -57,11 +119,11 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     overflow-x: hidden;
   }
   
-  /* Respect reduced motion */
+  /* Accessibility: Respect reduced motion */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -69,11 +131,21 @@
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
     }
+  }
+  
+  /* Custom selection */
+  ::selection {
+    background: hsl(var(--primary-glow) / 0.3);
+    color: hsl(var(--foreground));
   }
 }
 
-/* Custom Cursor Styles */
+/* ===========================================
+   CUSTOM CURSOR SYSTEM
+   =========================================== */
+
 @layer base {
   * {
     cursor: none;
@@ -83,9 +155,19 @@
   .cursor-pointer, [data-clickable] {
     cursor: none;
   }
+  
+  /* Fallback for touch devices */
+  @media (hover: none) and (pointer: coarse) {
+    * {
+      cursor: auto !important;
+    }
+  }
 }
 
-/* Custom Scrollbar - Minimal & Glowing */
+/* ===========================================
+   CUSTOM SCROLLBAR
+   =========================================== */
+
 @layer base {
   ::-webkit-scrollbar {
     width: 6px;
@@ -97,17 +179,27 @@
   }
   
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary) / 0.5);
+    background: hsl(var(--primary) / 0.4);
     border-radius: 3px;
+    transition: background 0.3s ease;
   }
   
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--primary-glow));
     box-shadow: 0 0 10px hsl(var(--primary-glow));
   }
+  
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.4) transparent;
+  }
 }
 
-/* Glassmorphism Components */
+/* ===========================================
+   GLASSMORPHISM COMPONENTS
+   =========================================== */
+
 @layer components {
   .glass-panel {
     @apply bg-card/30 backdrop-blur-xl border border-border/30;
@@ -122,9 +214,17 @@
   .glass-panel-dark {
     @apply bg-background/80 backdrop-blur-xl border border-border/20;
   }
+  
+  .glass-panel-elevated {
+    @apply bg-card/40 backdrop-blur-2xl border border-border/30;
+    box-shadow: var(--shadow-elevated);
+  }
 }
 
-/* Neon Glow Effects */
+/* ===========================================
+   NEON GLOW EFFECTS
+   =========================================== */
+
 @layer components {
   .glow-border {
     @apply border-primary/60;
@@ -144,16 +244,21 @@
   }
   
   .glow-box-intense {
-    box-shadow: 0 0 30px hsl(var(--primary-glow) / 0.5),
-                0 0 60px hsl(var(--primary-glow) / 0.3),
-                0 0 100px hsl(var(--primary-glow) / 0.2);
+    box-shadow: var(--shadow-neon-intense);
+  }
+  
+  .glow-inner {
+    box-shadow: inset 0 0 20px hsl(var(--primary-glow) / 0.15);
   }
 }
 
-/* Interactive Hover Effects */
+/* ===========================================
+   INTERACTIVE HOVER EFFECTS
+   =========================================== */
+
 @layer components {
   .hover-glow {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--motion-medium) var(--ease-micro);
     position: relative;
     overflow: hidden;
   }
@@ -165,7 +270,7 @@
     background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
                 hsl(var(--primary-glow) / 0.15), transparent 50%);
     opacity: 0;
-    transition: opacity 0.4s ease;
+    transition: opacity var(--motion-medium) ease;
     pointer-events: none;
   }
   
@@ -180,8 +285,8 @@
   }
   
   .hover-lift {
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-                box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--motion-medium) var(--ease-entrance), 
+                box-shadow var(--motion-medium) var(--ease-entrance);
   }
   
   .hover-lift:hover {
@@ -190,37 +295,47 @@
   }
   
   .hover-scale {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--motion-fast) var(--ease-micro);
   }
   
   .hover-scale:hover {
     transform: scale(1.05);
   }
   
-  .hover-rotate {
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  .hover-scale-subtle {
+    transition: transform var(--motion-fast) var(--ease-micro);
   }
   
-  .hover-rotate:hover {
-    transform: rotate(5deg);
+  .hover-scale-subtle:hover {
+    transform: scale(1.02);
   }
 }
 
-/* Button Press Animation */
+/* ===========================================
+   BUTTON INTERACTIONS
+   =========================================== */
+
 @layer components {
   .btn-press {
-    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--motion-fast) var(--ease-micro);
   }
   
   .btn-press:active {
-    transform: scale(0.95);
+    transform: scale(0.985);
+  }
+  
+  .btn-magnetic {
+    transition: transform var(--motion-fast) var(--ease-spring);
   }
 }
 
-/* Input Focus Glow */
+/* ===========================================
+   INPUT FOCUS EFFECTS
+   =========================================== */
+
 @layer components {
   .input-glow {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--motion-fast) var(--ease-micro);
   }
   
   .input-glow:focus {
@@ -228,9 +343,17 @@
                 0 0 20px hsl(var(--primary-glow) / 0.2);
     border-color: hsl(var(--primary-glow));
   }
+  
+  .input-error {
+    border-color: hsl(var(--destructive)) !important;
+    box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.2);
+  }
 }
 
-/* Card 3D Tilt Container */
+/* ===========================================
+   CARD 3D EFFECTS
+   =========================================== */
+
 @layer components {
   .card-3d {
     transform-style: preserve-3d;
@@ -238,12 +361,38 @@
   }
   
   .card-3d-inner {
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform var(--motion-medium) var(--ease-entrance);
     transform-style: preserve-3d;
+  }
+  
+  .card-spotlight {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .card-spotlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      600px circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%),
+      hsl(var(--primary-glow) / 0.15),
+      transparent 40%
+    );
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--motion-medium) ease;
+  }
+  
+  .card-spotlight:hover::before {
+    opacity: 1;
   }
 }
 
-/* Animated Gradient Background */
+/* ===========================================
+   ANIMATED BACKGROUNDS
+   =========================================== */
+
 @layer components {
   .animated-gradient {
     background: linear-gradient(
@@ -262,9 +411,16 @@
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
   }
+  
+  .mesh-gradient {
+    background: var(--gradient-mesh);
+  }
 }
 
-/* Grid Pattern Overlay */
+/* ===========================================
+   GRID PATTERNS
+   =========================================== */
+
 @layer components {
   .grid-pattern {
     background-image: 
@@ -287,19 +443,131 @@
   }
 }
 
-/* Noise Texture Overlay */
+/* ===========================================
+   TYPING & TERMINAL EFFECTS
+   =========================================== */
+
 @layer components {
-  .noise-overlay::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 1;
+  .typewriter-cursor::after {
+    content: '|';
+    animation: cursor-blink 1s ease-in-out infinite;
+    color: hsl(var(--primary-glow));
+  }
+  
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 8px 12px;
+  }
+  
+  .typing-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: hsl(var(--primary-glow));
+    animation: typing-dot 1.4s ease-in-out infinite;
+  }
+  
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  
+  @keyframes typing-dot {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-6px); opacity: 1; }
+  }
+  
+  .terminal-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  
+  .terminal-line {
+    animation: terminal-line var(--motion-fast) var(--ease-entrance) forwards;
+    opacity: 0;
   }
 }
 
-/* Floating Animation */
+/* ===========================================
+   STREAMING MESSAGE EFFECTS
+   =========================================== */
+
+@layer components {
+  .stream-word {
+    display: inline;
+    animation: stream-in var(--motion-fast) var(--ease-entrance) forwards;
+    opacity: 0;
+  }
+  
+  @keyframes stream-in {
+    0% { opacity: 0; transform: translateY(5px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  
+  .message-bubble {
+    transition: transform var(--motion-fast) var(--ease-micro);
+  }
+  
+  .message-bubble:hover {
+    transform: scale(1.01);
+  }
+}
+
+/* ===========================================
+   SHIMMER & LOADING EFFECTS
+   =========================================== */
+
+@layer components {
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--primary-glow) / 0.1),
+      transparent
+    );
+    animation: shimmer-slide 2s infinite;
+    transform: translateX(-100%);
+  }
+  
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-wave 1.5s ease-in-out infinite;
+  }
+  
+  .progress-indeterminate {
+    position: relative;
+    overflow: hidden;
+    background: hsl(var(--muted));
+  }
+  
+  .progress-indeterminate::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 25%;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary-glow)), transparent);
+    animation: progress-indeterminate 1.5s ease-in-out infinite;
+  }
+}
+
+/* ===========================================
+   FLOATING & PARALLAX
+   =========================================== */
+
 @layer utilities {
   .float {
     animation: float 6s ease-in-out infinite;
@@ -317,9 +585,16 @@
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-20px); }
   }
+  
+  .parallax-slow { transform: translateZ(-100px) scale(2); }
+  .parallax-medium { transform: translateZ(-50px) scale(1.5); }
+  .parallax-fast { transform: translateZ(0); }
 }
 
-/* Pulse Glow Animation */
+/* ===========================================
+   PULSE & BREATHING EFFECTS
+   =========================================== */
+
 @layer utilities {
   .pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
@@ -334,122 +609,21 @@
                   0 0 60px hsl(var(--primary-glow) / 0.3);
     }
   }
-}
-
-/* Shimmer Effect */
-@layer utilities {
-  .shimmer {
-    position: relative;
-    overflow: hidden;
-  }
   
-  .shimmer::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      hsl(var(--primary-glow) / 0.1),
-      transparent
-    );
-    animation: shimmer 2s infinite;
-    transform: translateX(-100%);
-  }
-  
-  @keyframes shimmer {
-    100% { transform: translateX(100%); }
-  }
-}
-
-/* Typewriter Cursor */
-@layer components {
-  .typewriter-cursor::after {
-    content: '|';
-    animation: blink 1s step-end infinite;
-    color: hsl(var(--primary-glow));
-  }
-  
-  @keyframes blink {
-    50% { opacity: 0; }
-  }
-}
-
-/* Rolling Number Animation */
-@layer components {
-  .number-roll {
-    display: inline-block;
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-}
-
-/* Staggered Animation Delays */
-@layer utilities {
-  .stagger-1 { animation-delay: 0.1s; }
-  .stagger-2 { animation-delay: 0.2s; }
-  .stagger-3 { animation-delay: 0.3s; }
-  .stagger-4 { animation-delay: 0.4s; }
-  .stagger-5 { animation-delay: 0.5s; }
-  .stagger-6 { animation-delay: 0.6s; }
-}
-
-/* Parallax Depth Layers */
-@layer utilities {
-  .parallax-slow { transform: translateZ(-100px) scale(2); }
-  .parallax-medium { transform: translateZ(-50px) scale(1.5); }
-  .parallax-fast { transform: translateZ(0); }
-}
-
-/* Radial Gradient Spotlight */
-@layer components {
-  .spotlight {
-    position: relative;
-  }
-  
-  .spotlight::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(
-      ellipse 600px 400px at var(--spotlight-x, 50%) var(--spotlight-y, 0%),
-      hsl(var(--primary-glow) / 0.15),
-      transparent 70%
-    );
-    pointer-events: none;
-  }
-}
-
-/* Audio Waveform Bars */
-@layer components {
-  .waveform-bar {
-    animation: waveform 1s ease-in-out infinite;
-  }
-  
-  .waveform-bar:nth-child(1) { animation-delay: 0s; }
-  .waveform-bar:nth-child(2) { animation-delay: 0.1s; }
-  .waveform-bar:nth-child(3) { animation-delay: 0.2s; }
-  .waveform-bar:nth-child(4) { animation-delay: 0.3s; }
-  .waveform-bar:nth-child(5) { animation-delay: 0.4s; }
-  
-  @keyframes waveform {
-    0%, 100% { height: 8px; }
-    50% { height: 24px; }
-  }
-}
-
-/* Breathing Glow */
-@layer utilities {
   .breathe {
     animation: breathe 4s ease-in-out infinite;
   }
   
   @keyframes breathe {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
   }
 }
 
-/* Ripple Click Effect */
+/* ===========================================
+   RIPPLE EFFECTS
+   =========================================== */
+
 @layer components {
   .ripple {
     position: relative;
@@ -479,7 +653,10 @@
   }
 }
 
-/* Status Indicators */
+/* ===========================================
+   STATUS INDICATORS
+   =========================================== */
+
 @layer components {
   .status-online {
     @apply relative;
@@ -499,9 +676,31 @@
       box-shadow: 0 0 0 8px hsl(142 76% 36% / 0);
     }
   }
+  
+  .status-typing {
+    @apply flex items-center gap-1;
+  }
 }
 
-/* Gradient Text */
+/* ===========================================
+   STAGGERED ANIMATIONS
+   =========================================== */
+
+@layer utilities {
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+  .stagger-6 { animation-delay: 0.6s; }
+  .stagger-7 { animation-delay: 0.7s; }
+  .stagger-8 { animation-delay: 0.8s; }
+}
+
+/* ===========================================
+   GRADIENT TEXT
+   =========================================== */
+
 @layer components {
   .gradient-text {
     @apply bg-clip-text text-transparent;
@@ -523,21 +722,28 @@
     animation: gradient-text-flow 3s linear infinite;
   }
   
+  .gradient-text-premium {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, 
+      hsl(var(--foreground)) 0%,
+      hsl(var(--primary-glow)) 40%,
+      hsl(320 100% 60%) 60%,
+      hsl(var(--foreground)) 100%
+    );
+    background-size: 300% auto;
+    animation: gradient-text-flow 4s linear infinite;
+  }
+  
   @keyframes gradient-text-flow {
     0% { background-position: 0% center; }
     100% { background-position: 200% center; }
   }
 }
 
-/* Perspective Container */
-@layer components {
-  .perspective-container {
-    perspective: 1500px;
-    perspective-origin: center center;
-  }
-}
+/* ===========================================
+   ANIMATED BORDERS
+   =========================================== */
 
-/* Animated Border */
 @layer components {
   .animated-border {
     position: relative;
@@ -569,14 +775,24 @@
   }
 }
 
-/* Focus Ring */
+/* ===========================================
+   FOCUS & ACCESSIBILITY
+   =========================================== */
+
 @layer components {
   .focus-ring:focus {
     @apply outline-none ring-2 ring-primary-glow ring-offset-2 ring-offset-background;
   }
+  
+  .focus-ring-visible:focus-visible {
+    @apply outline-none ring-2 ring-primary-glow ring-offset-2 ring-offset-background;
+  }
 }
 
-/* Shake Animation for Errors */
+/* ===========================================
+   ERROR & VALIDATION ANIMATIONS
+   =========================================== */
+
 @layer utilities {
   .shake,
   .animate-shake {
@@ -589,9 +805,17 @@
     30%, 50%, 70% { transform: translateX(-4px); }
     40%, 60% { transform: translateX(4px); }
   }
+  
+  .error-glow {
+    box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.3),
+                0 0 20px hsl(var(--destructive) / 0.2);
+  }
 }
 
-/* Success Check Animation */
+/* ===========================================
+   SUCCESS ANIMATIONS
+   =========================================== */
+
 @layer utilities {
   .check-animate {
     stroke-dasharray: 100;
@@ -601,5 +825,116 @@
   
   @keyframes check-draw {
     to { stroke-dashoffset: 0; }
+  }
+  
+  .success-pulse {
+    animation: success-pulse 0.6s ease-out;
+  }
+  
+  @keyframes success-pulse {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+}
+
+/* ===========================================
+   PERSPECTIVE CONTAINERS
+   =========================================== */
+
+@layer components {
+  .perspective-container {
+    perspective: 1500px;
+    perspective-origin: center center;
+  }
+  
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+}
+
+/* ===========================================
+   SPOTLIGHT EFFECTS
+   =========================================== */
+
+@layer components {
+  .spotlight {
+    position: relative;
+  }
+  
+  .spotlight::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 600px 400px at var(--spotlight-x, 50%) var(--spotlight-y, 0%),
+      hsl(var(--primary-glow) / 0.15),
+      transparent 70%
+    );
+    pointer-events: none;
+  }
+}
+
+/* ===========================================
+   WAVEFORM / AUDIO INDICATORS
+   =========================================== */
+
+@layer components {
+  .waveform-bar {
+    animation: waveform 1s ease-in-out infinite;
+  }
+  
+  .waveform-bar:nth-child(1) { animation-delay: 0s; }
+  .waveform-bar:nth-child(2) { animation-delay: 0.1s; }
+  .waveform-bar:nth-child(3) { animation-delay: 0.2s; }
+  .waveform-bar:nth-child(4) { animation-delay: 0.3s; }
+  .waveform-bar:nth-child(5) { animation-delay: 0.4s; }
+  
+  @keyframes waveform {
+    0%, 100% { height: 8px; }
+    50% { height: 24px; }
+  }
+}
+
+/* ===========================================
+   NOISE TEXTURE
+   =========================================== */
+
+@layer components {
+  .noise-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+/* ===========================================
+   UTILITY HELPERS
+   =========================================== */
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .gpu-accelerate {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }
