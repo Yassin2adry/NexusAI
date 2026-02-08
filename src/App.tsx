@@ -5,11 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { DailyLoginBonus } from "@/components/DailyLoginBonus";
-import { CustomCursor } from "@/components/animations/CustomCursor";
 import { AnimatePresence, motion } from "framer-motion";
 import { lazy, Suspense } from "react";
 
-// Lazy load pages for better performance
+// Lazy load pages
 const Index = lazy(() => import("./pages/Index"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Login = lazy(() => import("./pages/Login"));
@@ -43,87 +42,26 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
-// Premium loading animation
+// Simple loading spinner
 const PageLoader = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
-    <motion.div
-      className="relative"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      {/* Pulsing rings */}
-      {[0, 1, 2].map((i) => (
-        <motion.div
-          key={i}
-          className="absolute inset-0 rounded-full border-2 border-primary-glow/30"
-          initial={{ scale: 1, opacity: 0.5 }}
-          animate={{ 
-            scale: [1, 2, 2.5],
-            opacity: [0.5, 0.2, 0],
-          }}
-          transition={{
-            duration: 1.5,
-            repeat: Infinity,
-            delay: i * 0.3,
-            ease: "easeOut"
-          }}
-          style={{ width: 60, height: 60 }}
-        />
-      ))}
-      
-      {/* Center orb */}
-      <motion.div
-        className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center"
-        animate={{ 
-          boxShadow: [
-            "0 0 20px hsl(var(--primary-glow) / 0.4)",
-            "0 0 40px hsl(var(--primary-glow) / 0.6)",
-            "0 0 20px hsl(var(--primary-glow) / 0.4)",
-          ]
-        }}
-        transition={{ duration: 1.5, repeat: Infinity }}
-      >
-        <motion.div
-          className="w-8 h-8 rounded-full bg-background/20"
-          animate={{ scale: [1, 0.8, 1] }}
-          transition={{ duration: 1, repeat: Infinity }}
-        />
-      </motion.div>
-    </motion.div>
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-10 h-10 border-2 border-primary-glow border-t-transparent rounded-full animate-spin" />
+      <p className="text-sm text-muted-foreground">Loading...</p>
+    </div>
   </div>
 );
 
-// Route transition variants
+// Page transition wrapper
 const pageVariants = {
-  initial: { 
-    opacity: 0, 
-    y: 20,
-    filter: "blur(10px)",
-  },
-  animate: { 
-    opacity: 1, 
-    y: 0,
-    filter: "blur(0px)",
-    transition: {
-      duration: 0.4,
-      ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
-    }
-  },
-  exit: { 
-    opacity: 0, 
-    y: -20,
-    filter: "blur(10px)",
-    transition: {
-      duration: 0.3,
-      ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
-    }
-  },
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -10 },
 };
 
-// Animated routes wrapper
 const AnimatedRoutes = () => {
   const location = useLocation();
-  
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -132,6 +70,7 @@ const AnimatedRoutes = () => {
         animate="animate"
         exit="exit"
         variants={pageVariants}
+        transition={{ duration: 0.25, ease: [0.33, 1, 0.68, 1] }}
       >
         <Suspense fallback={<PageLoader />}>
           <Routes location={location}>
@@ -178,7 +117,6 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <CustomCursor />
       <BrowserRouter>
         <AuthProvider>
           <DailyLoginBonus />
