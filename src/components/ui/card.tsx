@@ -12,7 +12,8 @@ const Card = React.forwardRef<
     ref={ref}
     className={cn(
       "rounded-xl border border-border bg-card text-card-foreground shadow-sm",
-      interactive && "transition-all duration-base hover:border-primary/30 hover:-translate-y-1 hover:shadow-elevated cursor-pointer",
+      "transition-all duration-base ease-out",
+      interactive && "hover:border-primary/30 hover:-translate-y-1.5 hover:shadow-elevated cursor-pointer active:scale-[0.99] active:translate-y-0",
       glow && "hover:shadow-glow",
       className
     )}

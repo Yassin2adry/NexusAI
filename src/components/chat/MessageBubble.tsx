@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Copy, Check, Pin, Quote, MoreHorizontal, Edit2 } from "lucide-react";
+import { Copy, Check, Pin, Quote, MoreHorizontal, Edit2, Bot, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,12 +37,12 @@ export function MessageBubble({
   onQuote,
 }: MessageBubbleProps) {
   const [copied, setCopied] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
     setCopied(true);
-    toast.success("Copied to clipboard!");
+    toast.success("Copied!");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -50,119 +50,110 @@ export function MessageBubble({
 
   return (
     <motion.div
-      className={cn("flex group", isUser ? "justify-end" : "justify-start")}
-      initial={isNew ? { opacity: 0, y: 20, scale: 0.95 } : false}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.3, ease: [0.16, 0.84, 0.33, 1] }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className={cn("flex gap-3", isUser ? "flex-row-reverse" : "flex-row")}
+      initial={isNew ? { opacity: 0, y: 12 } : false}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.33, 1, 0.68, 1] }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      <div className="relative max-w-[85%] sm:max-w-[75%]">
-        {/* Message bubble */}
-        <motion.div
+      {/* Avatar */}
+      <div className={cn(
+        "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5",
+        isUser
+          ? "bg-primary/20"
+          : "bg-gradient-to-br from-primary/20 to-primary-glow/20"
+      )}>
+        {isUser ? (
+          <User className="h-4 w-4 text-foreground/70" />
+        ) : (
+          <Bot className="h-4 w-4 text-primary-glow" />
+        )}
+      </div>
+
+      {/* Message content */}
+      <div className={cn("relative group max-w-[80%] min-w-0", isUser ? "items-end" : "items-start")}>
+        <div
           className={cn(
-            "relative p-4 rounded-2xl",
+            "rounded-2xl px-4 py-3 text-sm",
             isUser
-              ? "bg-gradient-to-br from-primary to-primary-glow text-primary-foreground shadow-lg shadow-primary/20"
-              : "glass-panel-elevated border border-border/40"
+              ? "bg-primary text-primary-foreground rounded-tr-md"
+              : "bg-card border border-border/60 rounded-tl-md"
           )}
-          whileHover={{ scale: 1.005 }}
-          transition={{ duration: 0.15 }}
         >
-          {/* Spotlight effect for assistant messages */}
-          {!isUser && (
-            <motion.div
-              className="absolute inset-0 rounded-2xl pointer-events-none"
-              style={{
-                background: `radial-gradient(300px circle at ${isHovered ? '50%' : '0%'} 50%, hsl(var(--primary-glow) / 0.08), transparent 60%)`,
-              }}
-              animate={{ opacity: isHovered ? 1 : 0 }}
-              transition={{ duration: 0.3 }}
-            />
+          {!isUser && isStreaming ? (
+            <StreamingMessage content={content} isStreaming={isStreaming} speed="normal" />
+          ) : !isUser ? (
+            <MarkdownMessage content={content} />
+          ) : (
+            <p className="whitespace-pre-wrap leading-relaxed">{content}</p>
           )}
+        </div>
 
-          {/* Content */}
-          <div className="relative z-10">
-            {!isUser && isStreaming ? (
-              <StreamingMessage content={content} isStreaming={isStreaming} speed="normal" />
-            ) : !isUser ? (
-              <MarkdownMessage content={content} />
-            ) : (
-              <p className="text-sm whitespace-pre-wrap leading-relaxed">{content}</p>
+        {/* Timestamp */}
+        {timestamp && (
+          <motion.span
+            className={cn(
+              "block text-[10px] mt-1 px-1",
+              isUser ? "text-right text-muted-foreground/60" : "text-muted-foreground/60"
             )}
-          </div>
+            animate={{ opacity: hovered ? 0.8 : 0.4 }}
+            transition={{ duration: 0.15 }}
+          >
+            {new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </motion.span>
+        )}
 
-          {/* Timestamp */}
-          {timestamp && (
-            <motion.span 
-              className={cn(
-                "block text-[10px] mt-2",
-                isUser ? "text-primary-foreground/60" : "text-muted-foreground"
-              )}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: isHovered ? 1 : 0.5 }}
-            >
-              {new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </motion.span>
-          )}
-        </motion.div>
-
-        {/* Action buttons */}
+        {/* Actions */}
         <motion.div
           className={cn(
-            "absolute top-2 flex items-center gap-1",
-            isUser ? "-left-12" : "-right-12"
+            "absolute -top-2 flex items-center gap-0.5 z-10",
+            isUser ? "left-0 -translate-x-full pr-1" : "right-0 translate-x-full pl-1"
           )}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: isHovered ? 1 : 0, scale: isHovered ? 1 : 0.8 }}
-          transition={{ duration: 0.15 }}
+          initial={false}
+          animate={{ opacity: hovered ? 1 : 0, scale: hovered ? 1 : 0.9 }}
+          transition={{ duration: 0.12 }}
         >
-          {/* Quick copy button */}
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 glass-panel hover:bg-primary/10"
+            className="h-7 w-7 bg-card border border-border/60 hover:bg-accent"
             onClick={handleCopy}
           >
             {copied ? (
-              <Check className="h-3.5 w-3.5 text-green-500" />
+              <Check className="h-3 w-3 text-success" />
             ) : (
-              <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+              <Copy className="h-3 w-3 text-muted-foreground" />
             )}
           </Button>
 
-          {/* More options */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 glass-panel hover:bg-primary/10"
+                className="h-7 w-7 bg-card border border-border/60 hover:bg-accent"
               >
-                <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+                <MoreHorizontal className="h-3 w-3 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align={isUser ? "start" : "end"} className="glass-panel-solid">
+            <DropdownMenuContent align={isUser ? "start" : "end"} className="bg-card border-border">
               <DropdownMenuItem onClick={handleCopy}>
-                <Copy className="h-4 w-4 mr-2" />
-                Copy message
+                <Copy className="h-3.5 w-3.5 mr-2" /> Copy
               </DropdownMenuItem>
               {onPin && (
                 <DropdownMenuItem onClick={() => onPin(id)}>
-                  <Pin className="h-4 w-4 mr-2" />
-                  Pin message
+                  <Pin className="h-3.5 w-3.5 mr-2" /> Pin
                 </DropdownMenuItem>
               )}
               {onQuote && (
                 <DropdownMenuItem onClick={() => onQuote(content)}>
-                  <Quote className="h-4 w-4 mr-2" />
-                  Quote reply
+                  <Quote className="h-3.5 w-3.5 mr-2" /> Quote
                 </DropdownMenuItem>
               )}
               {isUser && onEdit && (
                 <DropdownMenuItem onClick={() => onEdit(id)}>
-                  <Edit2 className="h-4 w-4 mr-2" />
-                  Edit message
+                  <Edit2 className="h-3.5 w-3.5 mr-2" /> Edit
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
