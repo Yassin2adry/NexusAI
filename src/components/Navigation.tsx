@@ -15,13 +15,13 @@ export const Navigation = () => {
   const navLinks = [
     { name: "Home", path: "/" },
     ...(user ? [{ name: "Chat", path: "/chat" }] : []),
+    { name: "Community", path: "/community" },
     { name: "Tools", path: "/tools" },
     { name: "Marketplace", path: "/marketplace" },
-    { name: "Studio Sync", path: "/studio-sync" },
     ...(user ? [{ name: "Projects", path: "/projects" }] : []),
-    { name: "AI Lab", path: "/ai-lab" },
+    { name: "Leaderboard", path: "/leaderboard" },
+    { name: "Music", path: "/music" },
     { name: "Learn", path: "/learn" },
-    { name: "Docs", path: "/docs" },
   ];
 
   return (

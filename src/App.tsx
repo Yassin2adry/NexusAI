@@ -38,6 +38,13 @@ const StudioSync = lazy(() => import("./pages/StudioSync"));
 const Projects = lazy(() => import("./pages/Projects"));
 const AILab = lazy(() => import("./pages/AILab"));
 const Learn = lazy(() => import("./pages/Learn"));
+const Community = lazy(() => import("./pages/Community"));
+const Leaderboard = lazy(() => import("./pages/Leaderboard"));
+const MusicLounge = lazy(() => import("./pages/MusicLounge"));
+const ProfilePage = lazy(() => import("./pages/Profile"));
+const StatusPage = lazy(() => import("./pages/StatusPage"));
+const Changelog = lazy(() => import("./pages/Changelog"));
+const Notifications = lazy(() => import("./pages/Notifications"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -98,6 +105,14 @@ const AnimatedRoutes = () => {
             <Route path="/projects" element={<Projects />} />
             <Route path="/ai-lab" element={<AILab />} />
             <Route path="/learn" element={<Learn />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/music" element={<MusicLounge />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/profile/:userId" element={<ProfilePage />} />
+            <Route path="/status" element={<StatusPage />} />
+            <Route path="/changelog" element={<Changelog />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/about" element={<About />} />
             <Route path="/blog" element={<Blog />} />
