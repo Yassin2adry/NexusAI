@@ -45,6 +45,8 @@ const ProfilePage = lazy(() => import("./pages/Profile"));
 const StatusPage = lazy(() => import("./pages/StatusPage"));
 const Changelog = lazy(() => import("./pages/Changelog"));
 const Notifications = lazy(() => import("./pages/Notifications"));
+const Connections = lazy(() => import("./pages/Connections"));
+const Reviews = lazy(() => import("./pages/Reviews"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -113,6 +115,8 @@ const AnimatedRoutes = () => {
             <Route path="/status" element={<StatusPage />} />
             <Route path="/changelog" element={<Changelog />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/connections" element={<Connections />} />
+            <Route path="/reviews" element={<Reviews />} />
             <Route path="/docs" element={<Docs />} />
             <Route path="/about" element={<About />} />
             <Route path="/blog" element={<Blog />} />
